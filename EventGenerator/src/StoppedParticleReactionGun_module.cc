@@ -67,6 +67,10 @@ namespace mu2e {
 //-----------------------------------------------------------------------------
     bool    doHistograms_;
     TH1F*   _hEnergy;
+
+    TH1F*   _hKEnergy;
+    TH1F*   _hMom;
+
     TH1F*   _hPdgId;
     TH1F*   _hGenId;
     TH1F*   _hTime;
@@ -131,7 +135,11 @@ namespace mu2e {
     if ( doHistograms_ ) {
       art::ServiceHandle<art::TFileService> tfs;
       //      art::TFileDirectory tfdir = tfs->mkdir( "StoppedParticleReactionGun");
-      _hEnergy = tfs->make<TH1F>("hEnergy", "Energy"      , 2400,   0.0,  120);
+      _hEnergy = tfs->make<TH1F>("hEnergy", "Energy"      , 22000,   0.0,  2200); //2400,   0.0,  120
+      
+      _hKEnergy = tfs->make<TH1F>("hKEnergy", "KineticEnergy"      , 5000,   0.0,  500);
+      _hMom = tfs->make<TH1F>("hMom", "Momentum"      , 10000,   0.0,  1000);
+      
       _hGenId  = tfs->make<TH1F>("hGenId" , "Generator ID",  100,   0.0,  100);
       _hPdgId  = tfs->make<TH1F>("hPdgId" , "PDG ID"      ,  500,  -250, 250);
       _hTime   = tfs->make<TH1F>("hTime"  , "Time"        ,  400,   0.0, 2000.);
@@ -160,6 +168,9 @@ namespace mu2e {
     const CLHEP::Hep3Vector pos(stop.x, stop.y, stop.z);
 
     const double energy = generateEnergy();
+
+    const double kenergy = generateEnergy()-mass_;
+
     const double p = energy * sqrt(1 - std::pow(mass_/energy,2));
 
     CLHEP::Hep3Vector p3 = randomUnitSphere_.fire(p);
@@ -178,6 +189,10 @@ namespace mu2e {
       _hGenId->Fill(genId_.id());
       _hPdgId->Fill(pdgId_);
       _hEnergy->Fill(energy);
+
+      _hKEnergy->Fill(kenergy);
+      _hMom->Fill(p);
+
       _hTime->Fill(stop.t);
       _hZ->Fill(pos.z());
     }
