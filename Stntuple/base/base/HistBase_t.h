@@ -1,0 +1,12 @@
+///////////////////////////////////////////////////////////////////////////////
+// include inside the class declaration to make this type internal
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef __Stntuple_base_HistBase_t__
+#define __Stntuple_base_HistBase_t__
+
+struct HistBase_t {
+  int     fHistBaseID;			// name to avoid confusions
+};
+
+#endif

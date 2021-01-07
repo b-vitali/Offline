@@ -1,0 +1,5 @@
+*~
+.sconsign.dblite
+*.so
+*.d
+*dict_rdict.pcm

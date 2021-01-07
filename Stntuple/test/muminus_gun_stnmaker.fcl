@@ -1,0 +1,74 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# generate 105 MeV/c electrons and make STNTUPLE
+# choose p2 and use RootInput as source to ntuple MDC'2018 files
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  bgHitFiles : @nil
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : EMinusGunStnmaker
+
+source       : { module_type : EmptyEvent   }
+# source       : { module_type : RootInput   }
+
+outputs      : { @table::Stntuple.outputs   }
+
+physics : {
+    producers: { @table::Stntuple.producers }
+    filters  : { @table::Stntuple.filters   }
+    analyzers: { @table::Stntuple.analyzers }
+
+    p1       : [ @sequence::Stntuple.gen_g4_time_map,
+		 @sequence::Stntuple.digis          ,
+		 @sequence::Stntuple.trk_hit_reco   ,
+		 @sequence::Stntuple.cal_reco       ,
+		 @sequence::Stntuple.crv_reco       ,
+		 @sequence::Stntuple.reco_Dmu       ,
+		 @sequence::Stntuple.stnmaker_Dmu
+		]
+
+    p2       : [ # @sequence::Stntuple.gen_g4_time_map,
+		 # @sequence::Stntuple.digis          ,
+		 @sequence::Stntuple.trk_hit_reco   ,
+		 @sequence::Stntuple.cal_reco       ,
+		 @sequence::Stntuple.reco_Dmu       ,
+		 @sequence::Stntuple.stnmaker_Dmu
+		]
+    
+    trigger_paths : [ p1  ]
+    out           : [     ]
+    end_paths     : [ out ]
+}
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST (.art) file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.SelectEvents       : [ p1 ]
+#------------------------------------------------------------------------------
+# output file names 
+#------------------------------------------------------------------------------
+services.TFileService.fileName            : "nts._USER_.muminus_gun_stnmaker.xxx.000001.root"
+physics.filters.InitStntuple.histFileName : "nts._USER_.muminus_gun_stnmaker.xxx.000001.stn"
+outputs.detectorOutput.fileName           : "sim._USER_.muminus_gun_stnmaker.xxx.000001.art"
+#------------------------------------------------------------------------------
+# configure muon gun, the default is mu- 
+#------------------------------------------------------------------------------
+physics.producers.generate                      : { @table::Stntuple.producers.mgun }
+# physics.producers.generate.physics.pdgId        : -13  # uncomment to generate mu+'s
+#------------------------------------------------------------------------------
+# uncomment to avoid waisting time on the initialization of detailed neutron 
+# cross sections - that shouldn't affect the electron simulation 
+#------------------------------------------------------------------------------
+physics.producers.g4run.physics.physicsListName : "QGSP_BERT"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------

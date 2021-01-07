@@ -225,9 +225,7 @@ EventGenerator : { @table::EventGenerator
 		spectrumVariable : "momentum"
 		spectrumShape    : "flat"
 	    }
-	    muonStops            : { @table::mu2e.tgtMuonStops
-		inputFiles       : @local::mergedMuon_tgtStops_mdc2018_1
-	    }
+	    muonStops            : {  @table::EventGenerator.muonStops }
 	}
 
   	mgun : { @table::StoppedParticleReactionGun 
@@ -238,9 +236,7 @@ EventGenerator : { @table::EventGenerator
 		spectrumVariable : "momentum"
 		spectrumShape    : "flat"
 	    }
-	    muonStops            : { @table::mu2e.tgtMuonStops
-		inputFiles       : @local::mergedMuon_tgtStops_mdc2018_1
-	    }
+	    muonStops            : {  @table::EventGenerator.muonStops }
 	}
 #------------------------------------------------------------------------------
 # DIO electrons, Al, leading order spectrum
@@ -252,6 +248,7 @@ EventGenerator : { @table::EventGenerator
 		spectrumShape    : "tabulated"
 		spectrumFileName : "ConditionsService/data/czarnecki_Al.tbl"
 	    }
+	    muonStops            : {  @table::EventGenerator.muonStops }
 	}
 #------------------------------------------------------------------------------
 # DIO electrons, Al, leading order spectrum
@@ -264,18 +261,29 @@ EventGenerator : { @table::EventGenerator
 		spectrumShape    : "tabulated"
 		spectrumFileName : "ConditionsService/data/czarnecki_szafron_Al_2016.tbl"
 	    }
+	    muonStops            : {  @table::EventGenerator.muonStops }
 	}
 #------------------------------------------------------------------------------
 # 100 MeV/c protons
 #------------------------------------------------------------------------------
   	pgun : { @table::StoppedParticleReactionGun # p(proton)=100 MeV/c
 	    physics : { @table::StoppedParticleReactionGun.physics
-		pdgId            : 2212
-		elow             :  99.99
-		ehi              : 100.01
+		pdgId            : 2212 ##1000010020
+		#elow             : 0. ##100
+		#ehi              : 500. ##500
+		
 		spectrumVariable : "momentum"
 		spectrumShape    : "flat"
+
+		#spectrumShape     : "ejectedProtons"
+		#spectrumVariable : kineticEnergy
+		#nbins             : 1000
+		
+		#spectrumVariable : "momentum"
+		#spectrumShape : "tabulated"
+		#spectrumFileName : "ConditionsService/data/ejected_deuterons_weights.tbl"
 	    }
+	    muonStops            : {  @table::EventGenerator.muonStops }
 	}
 
   	photonGun : { @table::StoppedParticleReactionGun # p(photon)=100 MeV/c
@@ -286,9 +294,7 @@ EventGenerator : { @table::EventGenerator
 		spectrumVariable : "momentum"
 		spectrumShape    : "flat"
 	    }
-	    muonStops            : { @table::mu2e.tgtMuonStops
-		inputFiles: @local::mergedMuon_tgtStops_mdc2018_1
-	    }
+	    muonStops            : {  @table::EventGenerator.muonStops }
 	}
 
 	RPCGun : { 

@@ -1,0 +1,60 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# generate 105 MeV/c electrons
+# make STNTUPLE in one go, without creating an intermediate file
+# for 105 MeV/c electron : E = 105.00124           MeV
+# for 105 MeV/c muon     : E = 148.9584269653785   MeV
+#------------------------------------------------------------------------------
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+
+BEGIN_PROLOG
+  pdgCode    : 13
+  bgHitFiles : @nil
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : MgunDigiRecoStnDemDmm
+
+source       : { module_type : EmptyEvent }
+
+physics : {
+    producers: { @table::Stntuple.producers 
+	generate : { @table::Stntuple.producers.mgun }
+    }
+    filters  : { @table::Stntuple.filters 
+	InitStntuple : { @table::Stntuple.filters.InitStntuple
+	    histFileName : "mgun_digi_reco_stn_dem_dmm.stn" 
+	}
+    }
+
+    @table::Stntuple.paths
+
+    trigger_paths : [ path_gen_digi_reco_stn_dem_dmm ]
+    #    out : [detectorOutput]  # detectorOutput is defined in Stntuple/fcl/templates.fcl
+    out           : []
+    end_paths     : [ out ]
+
+}
+#
+# can use path names specified in 'physics.' context w/o prefixing
+#
+services.TFileService.fileName            : "mgun_digi_reco_stn_dem_dmm.hist"
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.fileName           : "mgun_digi_reco_stn_dem_dmm.root"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------

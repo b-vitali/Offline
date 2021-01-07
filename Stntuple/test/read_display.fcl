@@ -1,0 +1,17 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# p4 : read, run event display : MuHitDisplayDeMHDar
+# use for interactive pribjects stored in the file
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  bgHitFiles                  : @nil
+  INPUT_MODULE @protect_ignore: RootInput
+  TRIGGER_PATH @protect_ignore: p6
+  PROCESS_NAME @protect_ignore: ReadDisplay
+END_PROLOG
+
+#include "Stntuple/test/stnmaker.fcl"
+
+services.TFileService.fileName            : "nts._USER_.read_reco_stnmaker.xxx.000001.root"
+physics.filters.InitStntuple.histFileName : "nts._USER_.read_reco_stnmaker.xxx.000001.stn"
+outputs.detectorOutput.fileName           : "sim._USER_.read_reco_stnmaker.xxx.000001.art"

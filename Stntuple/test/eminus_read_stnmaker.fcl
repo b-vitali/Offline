@@ -1,0 +1,78 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# read file with digis, run reconstruction, make STNTUPLE
+#------------------------------------------------------------------------------
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+
+BEGIN_PROLOG
+  pdgCode                   : @local::Particle.eminus
+  bgHitFiles                : @nil
+  GEN_ID     @protect_ignore: cosmicDYB
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : EMinusReadStnmaker
+
+source       : { module_type : RootInput } # EmptyEvent 
+
+outputs      : { @table::Stntuple.outputs   }
+producers    : { @table::Stntuple.producers }
+filters      : { @table::Stntuple.filters   }
+paths        : { @table::Stntuple.paths     }
+
+physics : {
+    producers: { @table::producers 
+	generate                 : { @table::producers.egun }
+    }
+    
+    filters  : { @table::filters 
+	StntupleMakerDe: { @table::filters.StntupleMakerDe
+	    makeCrvPulses : 1
+	    genId         : @local::GEN_ID
+	}
+	InitStntuple : { @table::filters.InitStntuple histFileName : "nts.user.eminus_read_stnmaker.xxx.000001.stn" }
+    }
+
+#    @table::paths
+
+    p1 : [ # @sequence::Stntuple.gen_g4_time_map,
+	  # @sequence::Stntuple.digis          ,
+	  @sequence::Stntuple.trk_hit_reco   ,
+	  @sequence::Stntuple.cal_reco       ,
+	  @sequence::Stntuple.reco_De        ,
+	  @sequence::Stntuple.crv_reco       ,
+	  @sequence::Stntuple.stnmaker_De 
+	 ]
+
+    trigger_paths : [p1   ] 
+    out           : [     ]
+    end_paths     : [ out ]
+}
+
+services.TFileService.fileName            : "nts.user.eminus_read_stnmaker.xxx.000001.root"
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST (.art) file to be written out
+#-----------------------------------------------------------------------------
+#physics.out                               : [ detectorOutput ]
+#outputs.detectorOutput.SelectEvents       : [ path_gen_digi_reco_stn_tcm_dem]
+outputs.detectorOutput.fileName           : "sim.user.eminus_read_stnmaker.xxx.000001.art"
+#------------------------------------------------------------------------------
+# uncomment to avoid waisting time on the initialization of detailed neutron 
+# cross sections - that shouldn't affect the electron simulation 
+#------------------------------------------------------------------------------
+# physics.producers.g4run.physics.physicsListName : "QGSP_BERT"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------
+physics.producers.generate.muonStops.inputFiles : [ "mergedMuonStops/nts.mu2e.DS-TGTstops.MDC2018a.001002_00000000.root" ]

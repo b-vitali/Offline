@@ -1,0 +1,85 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# configuration for ntupling outputof the Stage2 simulation
+#------------------------------------------------------------------------------
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+
+BEGIN_PROLOG
+  pdgCode    : @local::Particle.eminus
+  bgHitFiles : @nil
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : G4S2MubeamStn
+
+source       : { module_type : RootInput    
+    fileNames : [ 
+		 "/pnfs/mu2e/phy-sim/sim/mu2e/cd3-beam-g4s2-mubeam/0728a/031/509/sim.mu2e.cd3-beam-g4s2-mubeam.0728a.001002_00000000.art"
+		]
+}
+
+outputs      : { @table::Stntuple.outputs   }
+producers    : { @table::Stntuple.producers }
+filters      : { @table::Stntuple.filters   }
+analyzers    : { @table::Stntuple.analyzers }
+paths        : { @table::Stntuple.paths     }
+
+physics : {
+    producers: { @table::producers 
+	generate                 : { @table::producers.egun }
+# for CE, not old background mixing - default: 'compressPVDetector'
+	CaloShowerStepFromStepPt : { @table::producers.CaloShowerStepFromStepPt  physVolInfoInput: "g4run" }
+    }
+    
+    filters  : { @table::filters 
+	StntupleMaker: { @table::filters.StntupleMaker
+#------------------------------------------------------------------------------
+# disable everything, require stage2 StepPointMC collection ("DSVacuum")
+#------------------------------------------------------------------------------
+	    makeClusters    : 0  # default: 1
+	    makePid         : 0  # default: 1
+	    makeStepPointMC : 1  # default: 0
+	    makeTracks      : 0  # default: 1
+	    makeVirtualHits : 0  # default: 1
+
+	    simpCollTag     : "muonBeamFilter"
+
+	    spmcBlockName   : ["SpmcBlock"              , "VDetBlock"      ]
+	    spmcCollTag     : ["muonBeamFilter:DSVacuum", "muonBeamFilter:virtualdetector" ]
+	}
+	InitStntuple : { @table::filters.InitStntuple histFileName : "nts.USER.PROJECT.g4s2_mubeam.000001.stn" }
+    }
+
+    analyzers : { @table::analyzers }
+
+    @table::paths
+
+    p1            : [ @sequence::stnmaker_seq  ]
+    trigger_paths : [ p1 ]
+    #    out : [ detectorOutput ]  # detectorOutput is defined in Stntuple/fcl/templates.fcl
+    out           : [  ]
+    end_paths     : [ gcl, out ]
+
+}
+
+services.TFileService.fileName            : "nts.USER.PROJECT.g4s2_mubeam.000001.root"
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.SelectEvents       : [ path_gen_digi_reco_stn_dem_dmm ]
+outputs.detectorOutput.fileName           : "sim.USER.PROJECT.g4s2_mubeam.000001.art"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------

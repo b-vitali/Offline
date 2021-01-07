@@ -1,0 +1,345 @@
+# -*- mode: tcl -*-
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+
+BEGIN_PROLOG
+bgHitFiles : [
+	      #	       "/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.1109a.000001_00001979.art"
+	      "/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000000.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000002.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000003.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000004.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000005.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000006.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000007.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000008.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000009.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000010.art"
+	      ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000011.art"
+	     ]
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+
+process_name : muHitDisplay
+#------------------------------------------------------------------------------
+# input module definition
+#------------------------------------------------------------------------------
+source : { 
+    #    module_type : EmptyEvent
+    module_type : RootInput
+    # fileNames   : [ "/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000000.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000002.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000003.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000004.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000005.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000006.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000007.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000008.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000009.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000010.art"
+    # 		    ,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000011.art"
+    # 		   ]
+    
+}
+#------------------------------------------------------------------------------
+# services section
+#------------------------------------------------------------------------------
+services : {
+    message               : @local::default_message
+    #    TFileService          : { fileName : "b11s6220.hist" }
+    TFileService          : { fileName : "/mu2e/data/users/gianipez/hist/muHitDisplay.hist" }
+
+    RandomNumberGenerator : { }
+    #   Timing                : { }
+
+    GeometryService        : { inputFile      : "Mu2eG4/geom/geom_common_cd3_s4p2.txt" }
+    ConditionsService      : { conditionsfile : "Mu2eG4/test/conditions_01.txt"        }
+    GlobalConstantsService : { inputFile      : "Mu2eG4/test/globalConstants_01.txt"   }
+    G4Helper               : { }
+    BTrkHelper             : @local::BTrkHelperDefault
+    SeedService            : { @table::automaticSeeds
+	baseSeed         :  0
+	maxUniqueEngines :  20
+    }
+    
+}
+
+services.TimeTracker : {
+    dbOutput : {
+	filename : "db_files/b11s6221/b11s6221.db"
+	overwrite : true
+    }
+}
+
+
+services.scheduler.wantSummary: true
+#------------------------------------------------------------------------------
+# reconstruction and analysis modules
+#------------------------------------------------------------------------------
+physics : {
+    producers: {@table::physics.producers
+	@table::EventMixing.producers
+	@table::Tracking.producers
+	@table::CaloDigiMC.producers
+	@table::CaloReco.producers
+	@table::CaloDigiMC.producersMC
+	@table::CaloCluster.producers
+	@table::CaloCluster.producersMC	
+
+
+
+	generate             : { @table::StoppedMuonConversionGun }
+	g4run                : @local::g4run
+	
+	FSHPreStereo         : { @table::FSHPreStereo
+	    UseCaloCluster           : true
+	}
+	
+	FlagStrawHits        : { @table::FlagStrawHits
+	    UseCaloCluster           : true
+	    UseCaloClusterXYPosition : true
+	}
+	
+	FlagBkgHits          : { @table::FlagBkgHits
+	    TLTClusterer: { @table::FlagBkgHits.TLTClusterer
+		SignalMask : ["TimeSelection", "EnergySelection","CalorimeterSelection"]
+	    }
+	}
+	
+	MakeStereoHits       : {@table::MakeStereoHits
+	    StrawHitSelectionBits: ["TimeSelection", "EnergySelection","CalorimeterSelection"]
+	}
+
+	TimeClusterFinder    : { @table::TimeClusterFinder
+	    HitSelectionBits: ["EnergySelection","TimeSelection","RadiusSelection","CalorimeterSelection"]
+	}
+	
+	#------------------------------------------------------------------------------
+	# hit makers
+	#------------------------------------------------------------------------------
+	CaloShowerStepFromStepPt : {@table::CaloShowerStepFromStepPt
+	    physVolInfoInput        : "detectorFilter"
+	}
+	#--------------------------------------------------------------------------------
+	# tracking 
+	#--------------------------------------------------------------------------------
+	CalPatRecFSHP             : { @table::CalPatRecFSHP
+	    UseCaloCluster         : true
+	}
+	
+	CalPatRecMakeStereoHits   : { @table::CalPatRecMakeStereoHits
+	    StrawHitSelectionBits  : ["TimeSelection", "EnergySelection","CalorimeterSelection"]
+	}
+	
+	CalPatRecFlagStrawHits    : { @table::CalPatRecFlagStrawHits
+	    UseCaloCluster           : true
+	    UseCaloClusterXYPosition : true
+	}
+	
+	CalPatRecFlagBkgHits      : { @table::CalPatRecFlagBkgHits
+	    TLTClusterer: { @table::FlagBkgHits.TLTClusterer
+		SignalMask         : ["TimeSelection", "EnergySelection","CalorimeterSelection"]
+	    }
+	}
+	
+    }
+
+    filters: {@table::physics.filters 
+	#--------------------------------------------------------------------------------
+	# CalPatRec sequence
+	#--------------------------------------------------------------------------------
+	@table::CalPatRec.filters
+
+	CalTimePeakFinder : { @table::CalPatRec.filters.CalTimePeakFinder
+	    HelixFitSelectionBits  : ["EnergySelection","TimeSelection","CalorimeterSelection"]
+	}
+	
+	CalHelixFinder       : { @table::CalPatRec.filters.CalHelixFinder
+	    HelixFinderAlg         : { @table::CalPatRec.filters.CalHelixFinder.HelixFinderAlg
+		HelixFitSelectionBits : ["EnergySelection","TimeSelection","RadiusSelection","CalorimeterSelection"]
+	    }
+	}
+
+	InitStntuple  : { @table::Stntuple.filters.InitStntuple 
+	    histFileName : "/mu2e/data/users/gianipez/stn/muHitdisplay.stn"  
+	    #	    histFileName : "b11s6220.stn"  
+	}
+	
+	StntupleMakerTcm : { @table::Stntuple.filters.StntupleMakerTcm 
+	    pidCollTag   : [ "ParticleID", "" , "" ]
+	}
+	#------------------------------------------------------------------------------
+	# event mixing modules - all clones of the same module.
+	# each clone takes certain collections from the input file and adds them to the event
+	#------------------------------------------------------------------------------
+	@table::EventMixing.filters
+
+	#------------------------------------------------------------------------------
+	# Andrej's filter
+	# Reject events with no hits from signal-like tracks in the detectors.  
+	# The filter does not look at the background hits from mixed events.
+	#------------------------------------------------------------------------------
+	detectorFilter:     @local::FilterStepPointMomentum
+	#------------------------------------------------------------------------------
+	# event display
+	#------------------------------------------------------------------------------
+	#	MuHitDisplay: { @table::MuHitDisplay }
+	#------------------------------------------------------------------------------
+	# event display
+	#------------------------------------------------------------------------------
+	MuHitDisplay  : { @table::MuHitDisplay 
+	    generatorModuleLabel   : ""
+	    g4ModuleLabel          : ""
+ 	    trackCollTag           : CalTrkFit
+	}
+    }
+
+    analyzers:
+    {
+
+	TrkTriggerDiag : {
+	    module_type : TrkTriggerDiag
+	}
+	
+    } 
+    #------------------------------------------------------------------------------
+    # paths
+    # write out ntuple only, so don't need compression modules...
+    # paths:
+    # ------
+    # p1 : main reconstruction path
+    # p2 : MC-only path
+    # p3 : reco-only
+    #
+    # MakeStereoHits also produces the StrawHitPosition collection
+    #------------------------------------------------------------------------------
+
+    gen  : [
+	    @sequence::EventMixing.TimeMaps, 
+            CaloShowerStepFromStepPt, CaloShowerStepROFromShowerStep, CaloDigiFromShower,
+            CaloRecoDigiFromDigi ,CaloCrystalHitFromHit, makeSD
+	   ]
+
+
+    all  : [
+	    @sequence::CaloReco.Reco	       , 
+	    @sequence::CaloCluster.Reco        , 
+	    makeSH			       , 
+	    FSHPreStereo		       , 
+	    MakeStrawHitPositions	       , 
+	    MakeStereoHits		       , 
+	    FlagStrawHits		       , 
+	    #
+	    FlagBkgHits,
+	    #
+	    TimeClusterFinder, PosHelixFinder, KSFDeM, KFFDeM,
+	    #
+	    CalPatRecFSHP, 
+	    CalPatRecMakeStrawHitPositions, 
+	    CalPatRecMakeStereoHits,  
+	    CalPatRecFlagStrawHits,   
+	    CalPatRecFlagBkgHits,
+	    #
+	    CalTimePeakFinder, 
+	    CalHelixFinder   ,
+	    CalSeedFit       , 
+	    CalTrkFit        ,
+	    #
+	    MergeHelixFinder,
+	    MergePatRec,
+	    MergePatRecTpr,
+	    MergePatRecCpr,
+            @sequence::TrackCaloMatching.matching,
+            @sequence::TrackCaloMatching.matching_tpr,
+            @sequence::TrackCaloMatching.matching_cpr,
+	    ParticleID, 
+	    @sequence::stnmaker3_seq
+	   ]
+
+    all2  : [
+	    @sequence::CaloReco.Reco	       , 
+	    @sequence::CaloCluster.Reco        , 
+	    makeSH			       , 
+	    CalPatRecFSHP, 
+	    CalPatRecMakeStrawHitPositions, 
+	    CalPatRecMakeStereoHits,  
+	    CalPatRecFlagStrawHits,   
+	    CalPatRecFlagBkgHits,
+	    #
+	    CalTimePeakFinder, 
+	    CalHelixFinder   ,
+	    CalSeedFit       , 
+	    CalTrkFit        ,
+	    #
+	    FSHPreStereo		       , 
+	    MakeStrawHitPositions	       , 
+	    MakeStereoHits		       , 
+	    FlagStrawHits		       , 
+	    #
+	    FlagBkgHits,
+	    #
+	    TimeClusterFinder, PosHelixFinder, KSFDeM, KFFDeM,
+	    #
+	    MergeHelixFinder,
+	    MergePatRec,
+	    MergePatRecTpr,
+	    MergePatRecCpr,
+            @sequence::TrackCaloMatching.matching,
+            @sequence::TrackCaloMatching.matching_tpr,
+            @sequence::TrackCaloMatching.matching_cpr,
+	    ParticleID, 
+	    #	    
+	    MuHitDisplay
+	   ]
+
+    
+
+    trigger_paths  : [all2]
+#    trigger_paths  : [gen]
+
+    #    trigger_paths  : [display]
+
+#    out : [detectorOutput]
+    
+    #    out            : [ReadCaloDigi]
+    out  : [ ] 
+
+    end_paths      : [out]
+}
+
+outputs: {
+    detectorOutput : {
+        module_type : RootOutput
+	#        SelectEvents: [all]
+        SelectEvents  : [gen]
+        outputCommands:   [ "keep *_*_*_*" ]
+	#        fileName      : "/mu2e/data/users/gianipez/data/debug01-20171004.art"
+	fileName    : "muHitDisplay.art"
+    }
+}
+#------------------------------------------------------------------------------
+# redefinitions
+#------------------------------------------------------------------------------
+# physics.producers.generate.inputfile      :"gianipez/test/caloDigi/genconfig_calo_eminus.txt"
+# physics.producers.MakeCaloCompressedHits.physVolInfoInput    : "dioMixer"
+
+services.SeedService.baseSeed             :  0
+services.SeedService.maxUniqueEngines     :  20
+
+# Set mean values for the number of events to mix for each process.
+# These are relative to a single proton on target.
+# See docdb-6273
+
+physics.filters.flashMixer.fileNames : @local::bgHitFiles
+physics.filters.ootMixer.fileNames : @local::bgHitFiles
+physics.filters.dioMixer.fileNames : @local::bgHitFiles
+physics.filters.neutronMixer.fileNames : @local::bgHitFiles
+physics.filters.photonMixer.fileNames : @local::bgHitFiles
+physics.filters.protonMixer.fileNames : @local::bgHitFiles
+physics.filters.deuteronMixer.fileNames : @local::bgHitFiles
+

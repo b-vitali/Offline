@@ -1,0 +1,28 @@
+#!/bin/bash
+
+dir=include
+
+# echo [build_config]: pwd  `pwd`
+#------------------------------------------------------------------------------
+# Stntuple and its subpackages
+#------------------------------------------------------------------------------
+if [ ! -d $dir/Stntuple ] ; then mkdir -p $dir/Stntuple ; fi
+
+# for d in alg base gui loop mod obj val ; do
+for d in alg ana base geom gui loop mod obj val ; do
+    if [[ -e Stntuple/$d ]] && [[ ! -e $dir/Stntuple/$d ]] ; then 
+	echo `pwd`$0 : creating symbolic link $dir/Stntuple/$d
+	ln -s ../../Stntuple/$d/$d $dir/Stntuple/$d
+    fi
+done
+#------------------------------------------------------------------------------
+# SCons-related things: executed from Stntuple
+#------------------------------------------------------------------------------
+if [ ! -d ./site_scons ] ; then mkdir ./site_scons ; fi
+cp -u Stntuple/scripts/site_init.py       ./site_scons/.
+cp -u Stntuple/scripts/stntuple_helper.py ./site_scons/.
+#------------------------------------------------------------------------------
+# .rootrc and rootlogon.C could be modified by the user, copy them just once
+#------------------------------------------------------------------------------
+if [ ! -f ./.rootrc     ] ; then cp Stntuple/scripts/.rootrc     ./. ; fi
+if [ ! -f ./rootlogon.C ] ; then cp Stntuple/scripts/rootlogon.C ./. ; fi

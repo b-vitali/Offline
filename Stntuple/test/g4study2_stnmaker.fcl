@@ -1,0 +1,81 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# ntuple output of the Mu2eG4/fcl/g4study2.fcl job
+#------------------------------------------------------------------------------
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+
+BEGIN_PROLOG
+  pdgCode    : @local::Particle.eminus
+  bgHitFiles : @nil
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : Stage1SpmcStn
+
+source       : { module_type : RootInput 
+# use one of the concatenated Stage1 files 
+    fileNames : ["sim.do.not_forget.to.specify.art"]
+}
+
+outputs      : { @table::Stntuple.outputs   }
+producers    : { @table::Stntuple.producers }
+filters      : { @table::Stntuple.filters   }
+analyzers    : { @table::Stntuple.analyzers }
+paths        : { @table::Stntuple.paths     }
+
+physics : {
+    producers: { @table::producers 
+	generate                 : { @table::producers.egun }
+# for CE, not old background mixing - default: 'compressPVDetector'
+	CaloShowerStepFromStepPt : { @table::producers.CaloShowerStepFromStepPt  physVolInfoInput: "g4run" }
+    }
+    
+    filters  : { @table::filters 
+	StntupleMaker: { @table::filters.StntupleMaker
+#------------------------------------------------------------------------------
+# disable everything, enable SimParticles
+#------------------------------------------------------------------------------
+	    makeClusters    : 0
+	    makePid         : 0
+	    makeSimp        : 1
+	    makeTracks      : 0
+	    makeStepPointMC : 0
+
+	    simpCollTag     : "g4run"
+
+	    spmcBlockName   : ["SpmcBlock"     , "VDetBlock"    ]
+	    spmcCollTag     : ["g4run:stepper" , "g4run:timeVD" ]
+	}
+	InitStntuple : { @table::filters.InitStntuple histFileName : "nts.murat.project.g4study2.simp.stn" }
+    }
+
+    @table::paths
+
+    p1            : [ @sequence::stnmaker_seq ]
+    trigger_paths : [ p1 ]
+    #    out : [detectorOutput]  # detectorOutput is defined in Stntuple/fcl/templates.fcl
+    out           : []
+    end_paths     : [ gcl, out ]
+}
+
+services.TFileService.fileName            : "nts.murat.bbb.g4study2.000001.root"
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.SelectEvents       : [ path_gen_digi_reco_stn_dem_dmm ]
+outputs.detectorOutput.fileName           : "aaa.murat.bbb.g4study2.000001.art"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------

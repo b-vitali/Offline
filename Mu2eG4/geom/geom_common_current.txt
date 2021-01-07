@@ -7,7 +7,7 @@ string detector.name  = "g4geom_v00";
 
 bool hasHall            = true;
 bool hasTarget          = true;
-bool hasProtonAbsorber  = true;
+bool hasProtonAbsorber  = false;
 bool hasTSdA           = true;
 bool hasExternalShielding = true;
 bool hasDiskCalorimeter = true;
@@ -84,8 +84,12 @@ double mu2e.detectorSystemZ0 = 10171.;   // mm  G4BL: (17730-7292=9801 mm)
 
 
 //-------------------------------------------
-// Magnetic field
+// Magnetic field 
 //-------------------------------------------
+//  "BFieldMaps/Mau13/DSMap.header", //full field
+//  "BFieldMaps/Mau9/50Percent/Mu2e_DSMap50.header", //half field
+
+
 
 // Form of DS field: 0 is full field;
 //                   1 is full upstream, const downstream;

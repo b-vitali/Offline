@@ -1,0 +1,108 @@
+#!/bin/bash
+
+pkg=MyAna
+
+if [ ".$1" != "." ] ; then pkg=$1 ; fi
+
+mkdir -p $pkg/ana/ana/dict
+mkdir -p $pkg/ana/scripts
+mkdir -p $pkg/scripts
+
+#------------------------------------------------------------------------------
+# populate
+#------------------------------------------------------------------------------
+cp Stntuple/ana/SConscript $pkg/ana
+
+cat Stntuple/scripts/build_config | sed "s/Stntuple/$pkg/g" >| $pkg/scripts/build_config
+
+cat Stntuple/ana/TStnTrackAnaModule.cc | sed "s#Stntuple/ana/TStnTrackAna#$pkg/ana/TMyTrackAna#g" | \
+                                         sed 's/StnTrackAna/MyTrackAna/g' >| $pkg/ana/TMyTrackAnaModule.cc
+
+cat Stntuple/ana/ana/TStnTrackAnaModule.hh | sed 's/StnTrackAna/MyTrackAna/g' >| $pkg/ana/ana/TMyTrackAnaModule.hh
+
+cat Stntuple/ana/ana/dict/TStnTrackAnaModule_linkdef.h | sed 's/StnTrackAna/MyTrackAna/g' >| $pkg/ana/ana/dict/TMyTrackAnaModule_linkdef.h
+
+source $pkg/scripts/build_config
+#------------------------------------------------------------------------------
+# modules.hh
+#------------------------------------------------------------------------------
+echo "#ifndef ${pkg}_ana_scripts_modules_hh" >| $pkg/ana/scripts/modules.hh 
+echo "#define ${pkg}_ana_scripts_modules_hh" >> $pkg/ana/scripts/modules.hh 
+cat << "EOF"                                 >> $pkg/ana/scripts/modules.hh 
+
+class TMyTrackAnaModule;
+TMyTrackAnaModule*        m_trk = NULL;
+
+#endif
+EOF
+#------------------------------------------------------------------------------
+# load_${pkg}_scripts.C
+#------------------------------------------------------------------------------
+echo "#include \"TInterpreter.h\""                >| $pkg/ana/scripts/load_stnana_scripts_$pkg.C
+echo "#include \"${pkg}/ana/scripts/modules.hh\"" >> $pkg/ana/scripts/load_stnana_scripts_$pkg.C
+echo "int load_stnana_scripts_${pkg}() {"         >> $pkg/ana/scripts/load_stnana_scripts_$pkg.C
+cat << "EOF"                                      >> $pkg/ana/scripts/load_stnana_scripts_$pkg.C
+//-----------------------------------------------------------------------------
+// the first parameter is the script, the second - env.var telling whether 
+// the script has to be loaded. If the corresponding env. variable is not defined,
+// the script is not loaded. PWD is always defined
+//-----------------------------------------------------------------------------
+  char        macro[200];
+
+  const char* script[] = { 
+    "trk.C"       , "PWD",
+    0 
+  };
+
+  TString work_dir = gEnv->GetValue("Stnana.TestReleaseDir",gSystem->Getenv("PWD"));
+
+  TInterpreter* cint = gROOT->GetInterpreter();
+  
+  for (int i=0; script[i] != 0; i+=2) {
+    const char* dir = gSystem->Getenv(script[i+1]);
+    if (dir) {
+EOF
+echo "      sprintf(macro,\"%s/$pkg/ana/scripts/%s\",dir,script[i]);" >> $pkg/ana/scripts/load_stnana_scripts_$pkg.C
+cat << "EOF" >> $pkg/ana/scripts/load_stnana_scripts_$pkg.C
+      if (! cint->IsLoaded(macro)) cint->LoadMacro(macro);
+    }
+  }
+  
+  return 0;
+}
+EOF
+#------------------------------------------------------------------------------
+# $pkg/ana/scripts/trk.C
+#------------------------------------------------------------------------------
+fn=$pkg/ana/scripts/trk.C
+cat << "EOF"                                    >| $fn
+///////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////
+#include "Stntuple/scripts/global_vars.h"
+EOF
+echo "#include \"$pkg/ana/scripts/modules.hh\"" >> $fn
+cat << "EOF"                                    >> $fn
+def_name trk_001("trk_ana");
+
+void trk_ana(int PdgCode = 11, int GeneratorCode = 2) {
+//-----------------------------------------------------------------------------
+// configure validation module
+//-----------------------------------------------------------------------------
+  m_trk = (TMyTrackAnaModule*) g.x->AddModule("TMyTrackAnaModule",0);  
+  m_trk->SetPdgCode      (PdgCode);
+  m_trk->SetGeneratorCode(GeneratorCode);
+}
+EOF
+#------------------------------------------------------------------------------
+# finally, append .rootrc and rootlogon.C
+#------------------------------------------------------------------------------
+if [ ".`cat .rootrc | grep +Stnana.Package | grep $pkg`" == '.' ] ; then 
+  echo "+Stnana.Package                $pkg" >> .rootrc
+fi
+
+cat rootlogon.C | awk -v pkg=$pkg '
+{ if ($1 == "//insert_user_libs_here") printf("      gSystem->Load(\"lib/lib%s_ana.so\");\n",pkg) ;
+  else print $0; 
+  endif 
+}' >| rootlogon.C.new ; mv  rootlogon.C.new rootlogon.C

@@ -1,0 +1,75 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# read generated file with the digitized hits saved, 
+# run electron-only reconstruction and display the results
+# no random numbers ! 
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  pdgCode    : 11
+  bgHitFiles : @nil
+END_PROLOG
+
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : MuHitDisplay
+
+source       : { 
+    module_type : RootInput
+    fileNames : ["data_03.root"]
+    maxEvents : -1
+}
+#
+# can use path names specified in 'physics.' context w/o prefixing
+#
+physics : { @table::physics 
+    # trigger_paths : [ allpatrec_reco_display ]
+    # trigger_paths : [ dem_reco_display ]
+
+
+    p1 : [ @sequence::CommonMC.DigiSim, 
+	   @sequence::hitMakerSeq,
+	   @sequence::CaloCluster.Reco, 
+	   @sequence::allPatRecSeq,
+	   @sequence::vadimPidSeq, 
+	   @sequence::Stntuple.crv_reco,
+	   MuHitDisplay 
+	  ]
+
+    trigger_paths : [ p1  ]
+    end_paths     : [ out ]
+
+    producers : { @table::physics.producers 
+	CalPatRec : { @table::physics.producers.CalPatRec 
+	    # debugLevel               : 100
+	    # HelixFitHack.debugLevel  : 100
+	    # HelixFitHack.debugLevel2 : 100
+	    # SeedFitHack.debugLevel   : 100
+	    # KalFitHack.debugLevel    : 100
+	    # KalFitHack.DoubletAmbigResolver.debugLevel  : 100
+	}
+    }
+
+    filters : { @table::physics.filters 
+	MuHitDisplay : { @table::MuHitDisplay
+	}
+    }
+}
+services.TFileService.fileName            : "egun_stnmaker.hist"
+physics.filters.InitStntuple.histFileName : "egun_stnmaker.stn" 
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.SelectEvents       : { SelectEvents : [ gen_allpatrec_dem_dmm_reco_stnmaker ] }
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+dir=include
+
+# echo pwd  `pwd`
+
+#------------------------------------------------------------------------------
+# 'trkProton' and its subpackages, excluding Stntuple
+#------------------------------------------------------------------------------
+if [ ! -d ../$dir/trkProton ] ; then mkdir -p ../$dir/trkProton ; fi
+
+for d in ana ; do
+    if [ ! -e ../$dir/trkProton/$d ] ; then 
+	echo `pwd`$0 : creating symbolic link ../$dir/trkProton/$d
+	ln -s ../../trkProton/$d/$d ../$dir/trkProton/$d
+    fi
+done

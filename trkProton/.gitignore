@@ -1,0 +1,17 @@
+*~
+\#*
+*.stn
+*.hist
+*.o
+*.so
+*.os
+*.root
+*.art
+*.log
+*.log.*
+*.pdf
+*.pyc
+*.orig
+.tup
+.buildopts
+

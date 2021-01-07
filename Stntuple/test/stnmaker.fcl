@@ -1,0 +1,119 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# STNTUPLE maker user FCL template - see read_reco.fcl
+# p1 : generate, simulate, reconstruct, stntuple
+# p2 : read, reconstruct, stntuple
+# p3 : old reco path: TPR and CPR reconstruction paths fully separated
+# p4 : read, filter, reconstruct, display
+# p5 : read, filter, reconstruct
+# p6 : read, filter, display
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  bgHitFiles   : @nil
+  INPUT_MODULE : EmptyEvent
+  TRIGGER_PATH : p1
+  PROCESS_NAME : Stnmaker
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : @local::PROCESS_NAME
+
+source       : { module_type : @local::INPUT_MODULE   }
+# source       : { module_type : RootInput   }
+
+outputs      : { @table::Stntuple.outputs   }
+
+physics : {
+    producers: { @table::Stntuple.producers }
+    filters  : { @table::Stntuple.filters   }
+    analyzers: { @table::Stntuple.analyzers }
+#------------------------------------------------------------------------------
+# MC generation, G4, reconstruction and stntuple making
+#------------------------------------------------------------------------------
+    p1       : [ @sequence::Stntuple.gen_g4_time_map,
+		 @sequence::Stntuple.digis          ,
+		 @sequence::Stntuple.trk_hit_reco   ,
+		 @sequence::Stntuple.cal_reco       ,
+		 @sequence::Stntuple.reco_De        ,
+		 @sequence::Stntuple.crv_reco       ,
+		 @sequence::Stntuple.stnmaker_De
+		]
+#------------------------------------------------------------------------------
+# reconstruction and stntuple making - default for ntupling mdc2018 datasets
+#------------------------------------------------------------------------------
+    p2       : [ @sequence::Stntuple.trk_hit_reco   ,
+		 @sequence::Stntuple.cal_reco       ,
+		 @sequence::Stntuple.reco_De        ,
+		 @sequence::Stntuple.crv_reco       ,
+		 @sequence::Stntuple.stnmaker_De
+		]
+#------------------------------------------------------------------------------
+# old reco path: TrkPatRec and CalPatRec fully separated
+#------------------------------------------------------------------------------
+    p3       : [ @sequence::Stntuple.gen_g4_time_map ,
+		 @sequence::Stntuple.digis           ,
+		 @sequence::Stntuple.trk_hit_reco    ,
+		 @sequence::Stntuple.cal_reco        ,
+		 @sequence::Stntuple.tpr_reco_dem    ,
+		 @sequence::Stntuple.cpr_reco_dem    ,
+		 @sequence::Stntuple.mpr_reco_dem    ,
+		 @sequence::Stntuple.crv_reco        ,
+		 @sequence::Stntuple.stnmaker_tcm_dem
+		]
+#------------------------------------------------------------------------------
+# read, reconstruct, run event display
+#------------------------------------------------------------------------------
+    p4       : [ EventFilter,
+		 @sequence::Stntuple.trk_hit_reco   ,
+		 @sequence::Stntuple.cal_reco       ,
+		 @sequence::Stntuple.reco_De        ,
+		 @sequence::Stntuple.crv_reco       ,
+		 MuHitDisplayDeMHDar
+		]
+#------------------------------------------------------------------------------
+# debugging: read, reconstruct
+#------------------------------------------------------------------------------
+    p5       : [ EventFilter,
+		 @sequence::Stntuple.trk_hit_reco   ,
+		 @sequence::Stntuple.cal_reco       ,
+		 @sequence::Stntuple.reco_De        ,
+		 @sequence::Stntuple.crv_reco       
+		]
+
+#------------------------------------------------------------------------------
+# read, filter, display
+#------------------------------------------------------------------------------
+    p6       : [ EventFilter,
+		MuHitDisplayDeMHDar]
+
+    trigger_paths : [ @local::TRIGGER_PATH ]
+    out           : [     ]
+    end_paths     : [ out ]
+}
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST (.art) file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.SelectEvents       : [ @local::TRIGGER_PATH ]
+#------------------------------------------------------------------------------
+# output file names 
+#------------------------------------------------------------------------------
+services.TFileService.fileName            : "nts._USER_.stnmaker.xxx.000001.root"
+physics.filters.InitStntuple.histFileName : "nts._USER_.stnmaker.xxx.000001.stn"
+outputs.detectorOutput.fileName           : "sim._USER_.stnmaker.xxx.000001.art"
+#------------------------------------------------------------------------------
+# uncomment to avoid waisting time on the initialization of detailed neutron 
+# cross sections - that shouldn't affect the electron simulation 
+#------------------------------------------------------------------------------
+physics.producers.generate                      : { @table::Stntuple.producers.egun }
+# physics.producers.g4run.physics.physicsListName : "QGSP_BERT"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------

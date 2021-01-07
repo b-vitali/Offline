@@ -1,0 +1,19 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# p1 : default reconstruction path
+# p2 : read and ntuple (use with RootInput to ntuple MDC'2018 files)
+# p3 : path to debug the TPR and CPR reconstruction paths separately
+# p4 : read, reconstruct, run event display : MuHitDisplayDeMHDar
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  bgHitFiles                  : @nil
+  INPUT_MODULE @protect_ignore: RootInput
+  TRIGGER_PATH @protect_ignore: p4
+  PROCESS_NAME @protect_ignore: ReadRecoStnmaker
+END_PROLOG
+
+#include "Stntuple/test/stnmaker.fcl"
+
+services.TFileService.fileName            : "nts._USER_.read_reco_stnmaker.xxx.000001.root"
+physics.filters.InitStntuple.histFileName : "nts._USER_.read_reco_stnmaker.xxx.000001.stn"
+outputs.detectorOutput.fileName           : "sim._USER_.read_reco_stnmaker.xxx.000001.art"

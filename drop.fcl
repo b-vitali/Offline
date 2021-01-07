@@ -1,0 +1,33 @@
+# -*- mode:tcl -*-
+
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+services : { @table::Services.Reco
+  message : @local::default_message
+}
+
+process_name : drop
+
+source : { module_type : RootInput }
+
+source.inputCommands : [ "keep *_*_*_*", 
+		     "drop mu2e::StrawDigiMCs_*_*_*",
+		     "drop mu2e::StrawDigis_*_*_*",
+		     "drop mu2e::CrvDigis_*_*_*",
+		     "drop mu2e::CrvDigiMCs_*_*_*",
+		     "drop mu2e::CaloDigis_*_*_*"
+		      ]
+outputs: {
+    defaultOutput : { module_type   : RootOutput }
+}
+
+physics : {
+
+    trigger_paths : []	
+    output_path     : [ defaultOutput ]
+    end_paths       : [ output_path ]
+}
+
+outputs.defaultOutput.fileName            : "a.art"

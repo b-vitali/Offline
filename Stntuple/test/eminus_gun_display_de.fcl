@@ -1,0 +1,64 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# generate 105 MeV/c electrons and make STNTUPLE
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  TimeOffsetMaps @protect_ignore: { inputs : [ "protonTimeMap", "muonTimeMap" ] }
+  bgHitFiles : @nil
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : EMinusGunDisplayDe
+
+source       : { module_type : EmptyEvent   }
+outputs      : { @table::Stntuple.outputs   }
+
+physics : {
+    producers: { @table::Stntuple.producers  }
+#	generate                 : { @table::producers.egun }
+#    }
+    
+    filters   : { @table::Stntuple.filters   }
+    analyzers : { @table::Stntuple.analyzers }
+
+    p1    : [ @sequence::Stntuple.gen_g4_time_map,
+	      @sequence::Stntuple.digis          ,  # this includes compressDigiMCs
+	      @sequence::Stntuple.trk_hit_reco   ,
+	      @sequence::Stntuple.cal_reco       ,
+	      @sequence::Stntuple.crv_reco       ,
+	      @sequence::Stntuple.reco_De        ,
+# 	      @sequence::Stntuple.stnmaker_De
+	      MuHitDisplayDeMHPar
+	     ]
+    
+    trigger_paths : [ p1  ]
+    out           : [     ]
+    end_paths     : [ out ]
+}
+#------------------------------------------------------------------------------
+# uncomment the next 2 lines if you want the DST (.art) file to be written out
+#-----------------------------------------------------------------------------
+# physics.out                               : [ detectorOutput ]
+# outputs.detectorOutput.SelectEvents       : [ p1 ]
+#------------------------------------------------------------------------------
+# uncomment to avoid waisting time on the initialization of detailed neutron 
+# cross sections - that shouldn't affect the electron simulation 
+#------------------------------------------------------------------------------
+physics.producers.generate                      : { @table::Stntuple.producers.egun }
+physics.producers.g4run.physics.physicsListName : "QGSP_BERT"
+#------------------------------------------------------------------------------
+# output file names 
+#------------------------------------------------------------------------------
+services.TFileService.fileName            : "nts._USER_.eminus_gun_display_de.xxx.000001.root"
+physics.filters.InitStntuple.histFileName : "nts._USER_.eminus_gun_display_de.xxx.000001.stn"
+outputs.detectorOutput.fileName           : "sim._USER_.eminus_gun_display_de.xxx.000001.art"
+#------------------------------------------------------------------------------
+# debugging
+#------------------------------------------------------------------------------
+# physics.producers.CalPatRecDem.diagLevel : 1
+# physics.producers.CalPatRecDmm.diagLevel : 1
+# physics.producers.AvikPID.debugLevel     : 100
+#------------------------------------------------------------------------------
+# everything below is appended by murat/scripts/submit_mu2e_job
+#------------------------------------------------------------------------------

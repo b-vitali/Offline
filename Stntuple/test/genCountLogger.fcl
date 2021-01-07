@@ -1,0 +1,41 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# print number of generated events in the MC file
+# templates.fcl is used only for services definition
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  bgHitFiles : @nil
+END_PROLOG
+#------------------------------------------------------------------------------
+# 2. includes
+#------------------------------------------------------------------------------
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : GenCountLogger
+
+source       : { module_type : RootInput 
+# use one of the concatenated Stage1 files 
+    fileNames : ["/mu2e/data/users/murat/datasets/ts3_tooth/v2/g4s3/00000/sim.murat.cd3-beam-g4s3-tgtstops.v622.001002_00010600.art"]
+}
+#------------------------------------------------------------------------------
+# this part would evolve depending on which templates are used
+#------------------------------------------------------------------------------
+# outputs      : { @table::Stntuple.outputs   }
+#------------------------------------------------------------------------------
+# the hope is that this part evolves minimally
+#------------------------------------------------------------------------------
+physics : {
+    analyzers : { 
+	genCountLogger      : { module_type: GenEventCountReader } # defalt: 1 StepPointMC, 10 MeV
+    }
+
+    p1 :  [ genCountLogger]  # defined in Stntuple.analyzers
+
+    trigger_paths : [    ]
+    end_paths     : [ p1 ]
+}
+
+services.TFileService.fileName            : "nts._USER_._DATASET_.genCountLogger.000001.root"
+#------------------------------------------------------------------------------
+# everything below is appended by the job submitting scripts
+#------------------------------------------------------------------------------

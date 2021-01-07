@@ -1,0 +1,120 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# generate 105 MeV/c electrons
+# make STNTUPLE in one go, without creating an intermediate file
+# for 105 MeV/c electron : E = 105.00124           MeV
+# for 105 MeV/c muon     : E = 148.9584269653785   MeV
+#------------------------------------------------------------------------------
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardProducers.fcl"
+#include "fcl/standardServices.fcl"
+
+#include "Stntuple/fcl/prolog.fcl"
+BEGIN_PROLOG
+  bgHitFiles : @nil
+END_PROLOG
+
+#include "Stntuple/fcl/templates.fcl"
+
+process_name : displayMix
+
+source       : { 
+    module_type : RootInput 
+#    fileNames : ["/pnfs/mu2e/scratch/outstage/ehrlich/specialEvents/events_with_positrons_and_antimuons.art"]
+#    fileNames : ["/mu2e/data/users/murat/datasets/cd3-detmix-cut-local-v2/sim.mu2e.cd3-detmix-cut.v566.000003_00000000.art",
+    # fileNames :[
+    # 		"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000000.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000002.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000003.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000004.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000005.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000006.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000007.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000008.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000009.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000010.art"
+    # 		,"/mu2e/data/users/gianipez/data/sim.mu2e.cd3-detmix-cut.v566b.000004_00000011.art"
+    # 	       ]
+    # fileNames : [
+    # 		 "/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/50/b6/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000000.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/82/93/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000001.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/30/d0/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000002.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/00/3d/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000003.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/ba/45/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000004.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/dd/51/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000005.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/e0/3d/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000006.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/e8/a7/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000007.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/5f/65/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000008.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/18/da/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000009.art"
+    # 		 ,"/pnfs/mu2e/tape/phy-sim/sim/mu2e/cd3-beam-g4s4-detconversion/v566/58/f6/sim.mu2e.cd3-beam-g4s4-detconversion.v566.004001_00000010.art"
+    # 		]
+    inputCommands : ['keep *_*_*_*'
+#		     , 'drop *_muonTimeMap_*_*'
+#		     , 'drop *_protonTimeMap_*_*'
+#		     , 'drop mu2eStrawDigis_*_*_*'
+#		     , 'drop mu2eStrawHits_*_*_*'
+#		     , 'drop *_CaloReadoutHitsMaker_*_*'
+#		     , 'drop *_CaloCrystalHitsMaker_*_*'
+#		     , 'drop *_TrkPatRec_*_*'
+#		     , 'drop *_FSHPreStereo_*_*'
+#		     , 'drop *_FlagStrawHits_*_*'
+#		     , 'drop *_FlagBkgHits_*_*'
+# Uncomment the above lines to reduce file size.
+		     ]  
+}
+
+physics : { @table::physics 
+    filters : { @table::physics.filters 
+	StntupleMaker : { @table::StntupleMaker	
+	    makeTracks     : 0
+	    makeTrackSeeds : 1
+	}
+	InitStntuple  : { @table::InitStntuple  histFileName  : "dispaly-test.stn" }
+#	InitStntuple  : { @table::InitStntuple  histFileName  : "ce-test.stn" }
+
+	MuHitDisplay   : { @table::MuHitDisplay 
+	    showTracks         : false
+	    trackCollTag       : ""
+	    trkExtrapol        : ""
+	    trkCalMatch        : ""
+	}
+
+    }
+
+    producers: { @table::physics.producers
+	MakeCaloProtoCluster : { @table::MakeCaloProtoCluster 
+	  EminSeed               : 10
+	  ExpandCut              : 2
+	  EnoiseCut              : 2
+	}
+
+	CalTimePeakFinder : { @table::CalTimePeakFinder }
+
+	CalPatRecNew : { @table::CalPatRecNew
+	    diagLevel            : 1
+	}
+
+    }
+    read  : [ 
+#		     @sequence::Tracking.DigiSim
+#	     @sequence::allPatRecSeq
+#	     @sequence::EventMixing.TimeMaps
+#	     , @sequence::hitMakerSeq
+#	     , @sequence::calRecoSeq
+#	     , @sequence::cprPrepHitSeq
+#	     , CalTimePeakFinder
+#	     , CalPatRecNew
+#                                       @sequence::TrackCaloMatching.matching,
+#	     , ParticleID
+#	     , @sequence::stnmaker_seq	     
+	     MuHitDisplay
+	    ]
+
+    out  : [] 
+    
+    trigger_paths : [ read ]
+    end_paths     : [ out ]
+}
+
+services.TFileService.fileName            : "display_mix.hist"
+# services.TFileService.fileName            : "read_ce.hist"

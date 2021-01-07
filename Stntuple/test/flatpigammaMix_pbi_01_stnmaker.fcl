@@ -1,0 +1,153 @@
+# -*- mode:tcl -*-
+#------------------------------------------------------------------------------
+# RPC background (JobConfig/mixing/flatpigammaMix.fcl used as a template)
+#------------------------------------------------------------------------------
+# 1. redefine global constants
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  BlindTime      @protect_ignore: 50.   
+#  TimeOffsetMaps @protect_ignore: { inputs : [ "protonTimeMap", "muonTimeMap" ] }
+#  TimeOffsetMaps @protect_ignore: { inputs : [ "protonTimeMapPrimary", "muonTimeMapPrimary" ] }
+  TimeOffsetMaps @protect_ignore: { inputs : [ "compressDigiMCs:protonTimeMap", "compressDigiMCs:muonTimeMap" ] }
+END_PROLOG
+#------------------------------------------------------------------------------
+# Dave's templates, then - mine
+#------------------------------------------------------------------------------
+#include "JobConfig/mixing/prolog.fcl"
+#include "Stntuple/fcl/templates.fcl"
+
+process_name          : flatpigammamix
+source                : { module_type : EmptyEvent }
+services              : @local::Services.Sim
+
+physics : { 
+  producers : {
+    @table::Mixing.producers           # these are MC-only, no reco
+    @table::Stntuple.reco_producers
+    generate : {
+      module_type: StoppedParticleRPCGun
+      verbosityLevel : 1
+      physics : {
+	generateIntConversion : 1      # 0: photon , 1: e+e- pair
+	spectrumShape         : flat   # 
+        elow                  : 80.0   # Mev
+        ehi                   : 140.0  # Mev
+      }
+      pionStops : {
+	treeName : "stoppedPionDumper/stops"
+	branchName : "stops"
+      }
+    }
+  }
+
+  filters: { 
+      @table::Stntuple.filters 
+      @table::Mixing.filters 
+ 
+      MuHitDisplay : { @table::Stntuple.filters.MuHitDisplayDem strawDigiMakerModuleLabel : "makeSD" }
+  }
+
+  analyzers: { 
+      @table::Stntuple.analyzers 
+      @table::Mixing.analyzers 
+  }
+
+  TriggerPath : [ @sequence::Mixing.TriggerPath      ,
+		  @sequence::Stntuple.trk_hit_reco   ,
+		  @sequence::Stntuple.cal_reco       ,
+		  @sequence::Stntuple.reco_De        ,
+		  @sequence::Stntuple.stnmaker_De
+		 ]
+
+  TriggerPathP2 : [ @sequence::Stntuple.trk_hit_reco   ,
+		    @sequence::Stntuple.cal_reco       ,
+		    @sequence::Stntuple.reco_De        ,
+		    @sequence::Stntuple.stnmaker_De
+		   ]
+
+  TriggerPathP3 : [ @sequence::Stntuple.trk_hit_reco   ,
+		    @sequence::Stntuple.cal_reco       ,
+		    @sequence::Stntuple.reco_De        ,
+		    MuHitDisplay
+		   ]
+  trigger_paths : [ TriggerPath ]
+  EndPath       : @local::Mixing.EndPath
+}
+outputs: { Output : @local::Mixing.Output }
+#------------------------------------------------------------------------------
+# standard termination - Dave put thresholds there 
+#------------------------------------------------------------------------------
+#include "JobConfig/mixing/epilog.fcl"
+#------------------------------------------------------------------------------
+# now customize the output
+#------------------------------------------------------------------------------
+services.scheduler.wantSummary                           : true
+services.BTrkHelper                                      : @local::BTrkHelperDefault
+services.TFileService.fileName                           : "nts._USER_.flatpigammaMix_stnmaker_pbi_01.xxx.sequencer.root"
+physics.filters.InitStntuple.histFileName                : "nts._USER_.flatpigammaMix_stnmaker_pbi_01.xxx.sequencer.stn"
+outputs.Output.fileName                                  : "dig._USER_.flatpigammaMix_stnmaker_pbi_01.xxx.sequencer.art"
+physics.end_paths                                        : [ EndPath ] # needed for generate_fcl
+physics.producers.generate.pionStops.inputFiles          : ["mergedMuonStops/nts.mu2e.pion-DS-TGTstops.MDC2018a.001002_00000000.root" ] 
+physics.producers.g4run.physics.physicsListName          : "QGSP_BERT"
+#------------------------------------------------------------------------------
+# STNTUPLE configuration
+#------------------------------------------------------------------------------
+physics.filters.StntupleMakerDe.makeCalData              : 1
+physics.filters.StntupleMakerDe.makeStrawData            : 1
+physics.filters.StntupleMakerDe.genpCollTag              : "generate"
+physics.filters.StntupleMakerDe.makeSimp                 : 2       # save gen signal only
+physics.filters.StntupleMakerDe.simpCollTag              : "g4run" #
+physics.filters.StntupleMakerDe.makeStepPointMC          : 1
+physics.filters.StntupleMakerDe.spmcBlockName            : [ "SpmcBlock"               ]
+physics.filters.StntupleMakerDe.spmcCollTag              : [ "compressDigiMCs:tracker" ]
+#------------------------------------------------------------------------------
+# unsuccessful attempt to turn OFF softly the digi filter - comment out
+#------------------------------------------------------------------------------
+# physics.filters.DigiFilter.MinParticleMom : 0.0
+# physics.filters.DigiFilter.MinNHits       : 0
+#------------------------------------------------------------------------------
+# reduce the beam intensity by a factor of 10
+#------------------------------------------------------------------------------
+physics.producers.protonBunchIntensity.extendedMean          : 3.9e6
+#------------------------------------------------------------------------------
+# move blind time down to zero
+#------------------------------------------------------------------------------
+services.ConditionsService.StrawElectronics.FlashEnd         : @local::BlindTime
+
+physics.producers.CaloShowerStepROFromShowerStep.blindTime   : @erase
+physics.producers.CaloShowerStepROFromShowerStep.blindTime   : @local::BlindTime
+
+physics.producers.CaloDigiFromShower.blindTime               : @erase 
+physics.producers.CaloDigiFromShower.blindTime               : @local::BlindTime
+
+physics.producers.CaloProtoClusterFromCrystalHit.timeCut     : @erase
+physics.producers.CaloProtoClusterFromCrystalHit.timeCut     : @local::BlindTime
+
+physics.producers.makeSD.flashEnd                            : @erase
+physics.producers.makeSD.flashEnd                            : @local::BlindTime
+
+physics.producers.makeSH.minimumTime                         : @erase
+physics.producers.makeSH.minimumTime                         : @local::BlindTime
+
+physics.producers.TimeClusterFinder.tmin                     : @erase
+physics.producers.TimeClusterFinder.tmin                     : @local::BlindTime
+
+physics.filters.CalTimePeakFinder.minClusterTime             : @erase
+physics.filters.CalTimePeakFinder.minClusterTime             : @local::BlindTime
+
+physics.producers.DeltaFinder.minimumTime                    : @erase
+physics.producers.DeltaFinder.minimumTime                    : @local::BlindTime
+
+physics.filters.CalHelixFinderDeM.HelixFinderAlg.minimumTime : @erase
+physics.filters.CalHelixFinderDeM.HelixFinderAlg.minimumTime : @local::BlindTime
+
+physics.filters.CalHelixFinderDeP.HelixFinderAlg.minimumTime : @erase
+physics.filters.CalHelixFinderDeP.HelixFinderAlg.minimumTime : @local::BlindTime
+#------------------------------------------------------------------------------
+# time offsets do not need to be changed
+#------------------------------------------------------------------------------
+# physics.producers.CaloShowerStepROFromShowerStep.TimeOffsets : @erase
+# physics.producers.CaloShowerStepROFromShowerStep.TimeOffsets : @local::TimeOffsetMaps
+#------------------------------------------------------------------------------
+# the end
+#------------------------------------------------------------------------------

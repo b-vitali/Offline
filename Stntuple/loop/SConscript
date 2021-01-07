@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+#
+# Script to build the files found in this directory.
+#------------------------------------------------------------------------------
+import os
+Import('env')
+Import('stntuple_helper')
+#------------------------------------------------------------------------------
+# 2016-10-10: STNTUPLE link: add ROOT 'EG' library after 'Physics' library
+#------------------------------------------------------------------------------
+babarlibs = env['BABARLIBS']
+rootlibs  = env['ROOTLIBS']
+if ( not ("EG" in rootlibs)):
+    rootlibs.insert(rootlibs.index("Physics")+1,"EG");
+
+stn_helper = stntuple_helper(env);
+
+dict_skip_list = []
+if (os.getenv("STNTUPLE_MC_GEN") == None): 
+    dict_skip_list.append("TStnGeneratorModule_linkdef.h");
+
+stn_helper.handle_dictionaries(skip_list=dict_skip_list);
+
+list_of_cc_files =  Glob('*.cc', strings=True);
+skip_list        = []
+
+if (os.getenv("STNTUPLE_MC_GEN") == None): 
+    skip_list.append('TStnGeneratorModule.cc');
+    skip_list.append('StnGenInitGenpBlock.cc');
+
+stntuple_libs = [ 'Stntuple_obj', 'Stntuple_base'];
+
+if (os.getenv("STNTUPLE_MC_GEN") != None): stntuple_libs.append('mc_base');
+
+libs =  stntuple_libs + rootlibs
+
+stn_helper.build_libs(list_of_cc_files, skip_list,libs);
+# print "tmpdir:"+env['TMP_LIB_DIR']
