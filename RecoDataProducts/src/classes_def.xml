@@ -338,6 +338,14 @@
  <class name="art::Wrapper<mu2e::TriggerInfo>"/>
  <class name="art::Wrapper<mu2e::TriggerInfoCollection>"/>
 
+
+<!--  ********* luminosity  ********* -->
+<!-- bvitali dec 2020 -->
+
+ <class name="mu2e::LumiInfo"/>
+ <class name="art::Wrapper<mu2e::LumiInfo>"/>
+
+
 <!--  ********* general reco ********* -->
 
  <class name="mu2e::AHist<uint16_t,70>"/>

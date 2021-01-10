@@ -87,6 +87,9 @@
 #include "RecoDataProducts/inc/TriggerFlag.hh"
 #include "RecoDataProducts/inc/TriggerInfo.hh"
 
+// luminosity bvitali dec 2020
+#include "RecoDataProducts/inc/LumiInfo.hh"
+
 // general reco
 #include "RecoDataProducts/inc/RecoCount.hh"
 

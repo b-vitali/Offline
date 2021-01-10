@@ -20,6 +20,9 @@
 #include "RecoDataProducts/inc/StrawHitFlag.hh"
 #include "RecoDataProducts/inc/TimeCluster.hh"
 #include "RecoDataProducts/inc/CaloCluster.hh"
+
+#include "RecoDataProducts/inc/LumiInfo.hh"
+
 // tracking
 #include "TrkReco/inc/TrkUtilities.hh"
 #include "TrkReco/inc/TrkTimeCalculator.hh"
@@ -198,6 +201,8 @@ namespace mu2e {
         unsigned nbins = (unsigned)rint((_tmax-_tmin)/_tbin);
         _timespec = TH1F("timespec","time spectrum",nbins,_tmin,_tmax);
         produces<TimeClusterCollection>();
+
+	produces<LumiInfo>();                                                //bvitali
     }
 
   void TimeClusterFinder::beginJob() {
@@ -254,6 +259,13 @@ namespace mu2e {
 	}
       }
     }
+
+    //bvitali
+    std::unique_ptr<LumiInfo> lumi(new LumiInfo);
+    lumi->_lumi[0] = tccol->size();   
+    lumi->_lumi[1] = tccol->size()/2.;   
+    event.put(std::move(lumi));  
+
     event.put(std::move(tccol));
   }
 
