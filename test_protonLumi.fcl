@@ -1,0 +1,91 @@
+# -*- mode: tcl -*-
+#------------------------------------------------------------------------------
+# conversion electrons: read digi file, reconstruct, stntuple 
+# by default: do not write reconstructed output (DST), set physics.output_path to [] 
+# includes tuned calorimeter timing resolution
+#------------------------------------------------------------------------------
+BEGIN_PROLOG
+  INPUT_MODULE  @protect_ignore: RootInput      # EmptyEvent/RootInput
+  TRIGGER_PATHS @protect_ignore: [ 
+				  proton_path
+				 ]
+
+  PROCESS_NAME  @protect_ignore: RecoStn
+  GEN_ID        @protect_ignore: "CeLeadingLog"
+  TIME_MAPS     @protect_ignore: [ "compressDigiMCs:protonTimeMap", "compressDigiMCs:muonTimeMap", "compressDigiMCs:cosmicTimeMap" ]
+END_PROLOG
+
+#include "Stntuple/fcl/stnmaker.fcl"
+
+process_name                              : @local::PROCESS_NAME
+outputs                                   : { @table::Stntuple.outputs }  
+physics                                   : { @table::Stntuple.physics 
+    
+    producers: {@table::Stntuple.physics.producers
+	
+	makeSH            : { @table::TrkHitReco.producers.makeSH
+	    minimumEnergy  : 0.004 ## 0.002-0.004 looking at SHE_vs_P
+	    maximumEnergy  : 0.014 
+	}
+	
+	TimeClusterFinderDpP : { @table::TimeClusterFinder
+            AveragePitch : 0.63 ## signed
+	    MinNHits   : 5                  
+	    DtMax      : 70     ## from Bertacchi #FIXME!
+	    HitBackgroundBits : []
+	    Tmax       : 1800   ## bvitali in order to reconstruct proton with Time ~1690
+	    T0Calculator  : { @table::TimeCalculator
+		StrawHitBeta          : 0.1  #IMPROVE ME!
+	    }
+	    debugLevel     : 0
+	    UseCaloCluster : false  ##### &&
+	    MinKeepHitMVA : -100000 ##### &&
+	}
+    }
+
+    analyzers : { @table::Trigger.analyzers 
+	
+	readLumiInfo : {
+	    module_type   : ReadLumiInfo
+	}
+    }
+    
+    proton_path : [ makeSH, makePH, FlagBkgHits, TimeClusterFinderDpP ] ##@sequence::su2020.trk_hit_reco
+}
+
+
+
+#outputs.defaultOutput.outputCommands	: [##"keep *_*_*_*"
+#					    "drop    *_*_*_*",
+					    #"keep    mu2e::ProtonBunchIntensity_protonBunchIntensity__S4NoPrimary",
+					    #"keep    mu2e::StrawHits_makeSH__RecoStn",
+					    #"keep    mu2e::TimeClusters_TimeClusterFinderDpP__RecoStn",
+#					    "keep    mu2e::LumiInfo_TimeClusterFinderDpP__RecoStn"
+#					   ]	
+    
+#bvitali can we drop auxiliary and metadata? 
+outputs.defaultOutput : {module_type : RootOutput
+    dropMetaData       : "ALL"
+    outputCommands	: [##"keep *_*_*_*"
+					    "drop    *_*_*_*",
+					    #"keep    mu2e::ProtonBunchIntensity_protonBunchIntensity__S4NoPrimary",
+					    #"keep    mu2e::StrawHits_makeSH__RecoStn",
+					    #"keep    mu2e::TimeClusters_TimeClusterFinderDpP__RecoStn",
+					    "keep    mu2e::LumiInfo_TimeClusterFinderDpP__RecoStn"
+					   ]
+}
+
+# tune calorimeter timing resolution for 1-batch running mode, <proton pulse intensity> = 1.6e7
+physics.producers.CaloCrystalHitFromHit.aCorr : 6.745
+physics.producers.CaloCrystalHitFromHit.bCorr : 0.204
+
+physics.output_path                       : [ readLumiInfo, defaultOutput]  # choices: [ ] / [ defaultOutput ]
+#outputs.defaultOutput.SelectEvents        : [ @sequence::TRIGGER_PATHS ]
+#------------------------------------------------------------------------------
+services.GeometryService.inputFile        : "su2020/common/geom_baseline.txt"
+services.TFileService.fileName            : "/mu2e/data/personal/bvitali/su2020/mnbs0/nts._bvitali_.lumiInfo.su2020.000000_00000test.root"
+outputs.defaultOutput.fileName            : "/mu2e/data/personal/bvitali/su2020/mnbs0/mcs._bvitali_.lumiInfo.su2020.000000_00000test.art"
+
+#physics.filters.StntupleMakerTemplate.triggerResultsTag : @local::PROCESS_NAME
+## #include "lumiPath.fcl"
+#include "gen/fcl/Trigger/offline/allTrig/allPaths.fcl"

@@ -1,0 +1,112 @@
+#------------------------------------------------------------------------------
+# performs the calorimeter and track reconstruciton
+#------------------------------------------------------------------------------
+#  > mu2e --config CaloFilters/fcl/runGlobalFilter.fcl --source "your digis file" --TFile globalFilter.root --nevts=100
+#include "fcl/minimalMessageService.fcl"
+#include "fcl/standardServices.fcl"
+#include "fcl/standardProducers.fcl"
+#include "TrkPatRec/fcl/prolog.fcl"
+#include "Trigger/fcl/templates.fcl"
+
+process_name : globalTrigger3
+
+source :
+{
+    module_type : RootInput
+    inputCommands : [  "keep *_*_*_*",
+                       "drop **art::TriggerResults_*_*_*"]
+}
+# we don't need any simulation services for this job
+# services : @local::Services.Reco
+
+services : @local::Services.Reco
+
+# timing information
+services.TimeTracker : {
+    dbOutput : {
+	filename : ""
+#	filename : "runGlobalTrigger.db" #uncomment to create the .db output
+	overwrite : true
+    }
+}
+
+services.scheduler.wantSummary: true
+
+physics : {
+    producers : { @table::Trigger.producers
+	makeSH            : { @table::TrkHitReco.producers.makeSH
+	    FitType : 5
+	    ProtonBunchTimeTag : "makeSD"
+	    CaloClusterCollectionTag : "CaloClusterFast"
+	    StrawDigiADCWaveformCollectionTag : "NotUsed"
+	    minimumEnergy  : 0.004 ## 0.002-0.004 looking at SHE_vs_P
+	    maximumEnergy  : 0.014 
+	}
+	
+	TimeClusterFinderDpP : { @table::Tracking.producers.TimeClusterFinderDe
+
+            AveragePitch : 0.63 ## signed
+	    MinNHits   : 5                  
+	    DtMax      : 70     ## from Bertacchi #FIXME!
+	    HitBackgroundBits : []
+	    Tmax       : 1800   ## bvitali in order to reconstruct proton with Time ~1690
+	    T0Calculator  : { @table::TimeCalculator
+		StrawHitBeta          : 0.1  #IMPROVE ME!
+	    }
+	    debugLevel     : 0
+	    UseCaloCluster : false  ##### &&
+	    MinKeepHitMVA : -100000 ##### &&
+	}
+     }
+
+    filters   : { @table::Trigger.filters }
+ 
+    analyzers : { @table::Trigger.analyzers 
+
+      readTriggerInfo : { @table::Trigger.analyzers.ReadTriggerInfo
+	 nFilters       : 150
+	 nTrackTriggers : 15
+	 processName    : globalTrigger3
+      }
+
+	readLumiInfo : {
+	    module_type   : ReadLumiInfo
+	}
+	
+    }
+
+
+
+   #  AAAFetchDigi : [ cprFetchDigis ]
+   
+   #   trigger_paths : [ AAAFetchDigi,  unbiased_trigger, minimumbiasSDCount_trigger, largeSDCount_trigger, minimumbiasCDCount_trigger, largeCDCount_trigger, caloPhoton_trigger, caloMVACE_trigger, cprLowPSeedDeM_trigger, cprLowPSeedDeP_trigger, cprCosmicSeedDeM_trigger, cprCosmicSeedDeP_trigger, caloCalibCosmic_trigger, tprLowPSeedDeM_trigger, tprLowPSeedDeP_trigger, tprCosmicSeedDeM_trigger, tprCosmicSeedDeP_trigger, tprSeedDeM_trigger, tprSeedDeP_trigger, cprSeedDeM_trigger, cprSeedDeP_trigger, tprHelixCalibIPADeM_trigger, tprHelixIPADeM_trigger ]
+
+    out       : [ readLumiInfo , triggerOutput ]
+#    out       : [  ]
+    end_paths : [ out ]
+}
+
+outputs : {  @table::Trigger.outputs }
+
+outputs.triggerOutput.outputCommands	: [#"keep *_*_*_*",
+					    "drop    *_*_*_*",
+					    #"keep    mu2e::ProtonBunchIntensity_protonBunchIntensity__S4NoPrimary",
+					    #"keep    mu2e::StrawHits_makeSH__RecoStn",
+					    #"keep    mu2e::TimeClusters_TimeClusterFinderDpP__RecoStn",
+					    "keep    mu2e::LumiInfo_TimeClusterFinderDpP__*"
+					   ]
+
+outputs.triggerOutput.SelectEvents : [proton_path]
+services.TFileService.fileName            : "/mu2e/data/personal/bvitali/su2020/mnbs0/nts._bvitali_.lumiInfo.su2020.000000_00000test.root"
+outputs.triggerOutput.fileName            : "/mu2e/data/personal/bvitali/su2020/mnbs0/mcs._bvitali_.lumiInfo.su2020.000000_00000test.art"
+
+
+
+physics.analyzers.readTriggerInfo.SelectEvents :  [ unbiased_trigger, minimumbiasSDCount_trigger, largeSDCount_trigger, minimumbiasCDCount_trigger, largeCDCount_trigger, caloPhoton_trigger, caloMVACE_trigger, cprLowPSeedDeM_trigger, cprLowPSeedDeP_trigger, cprCosmicSeedDeM_trigger, cprCosmicSeedDeP_trigger, caloCalibCosmic_trigger, tprLowPSeedDeM_trigger, tprLowPSeedDeP_trigger, tprCosmicSeedDeM_trigger, tprCosmicSeedDeP_trigger, tprSeedDeM_trigger, tprSeedDeP_trigger, cprSeedDeM_trigger, cprSeedDeP_trigger, tprHelixCalibIPADeM_trigger, tprHelixIPADeM_trigger ]
+physics.analyzers.readTriggerInfo.triggerPathsList :  [ unbiased_trigger, minimumbiasSDCount_trigger, largeSDCount_trigger, minimumbiasCDCount_trigger, largeCDCount_trigger, caloPhoton_trigger, caloMVACE_trigger, cprLowPSeedDeM_trigger, cprLowPSeedDeP_trigger, cprCosmicSeedDeM_trigger, cprCosmicSeedDeP_trigger, caloCalibCosmic_trigger, tprLowPSeedDeM_trigger, tprLowPSeedDeP_trigger, tprCosmicSeedDeM_trigger, tprCosmicSeedDeP_trigger, tprSeedDeM_trigger, tprSeedDeP_trigger, cprSeedDeM_trigger, cprSeedDeP_trigger, tprHelixCalibIPADeM_trigger, tprHelixIPADeM_trigger ]
+
+#outputs.triggerOutput.SelectEvents : [ unbiased_trigger, minimumbiasSDCount_trigger, largeSDCount_trigger, minimumbiasCDCount_trigger, largeCDCount_trigger, caloPhoton_trigger, caloMVACE_trigger, cprLowPSeedDeM_trigger, cprLowPSeedDeP_trigger, cprCosmicSeedDeM_trigger, cprCosmicSeedDeP_trigger, caloCalibCosmic_trigger, tprLowPSeedDeM_trigger, tprLowPSeedDeP_trigger, tprCosmicSeedDeM_trigger, tprCosmicSeedDeP_trigger, tprSeedDeM_trigger, tprSeedDeP_trigger, cprSeedDeM_trigger, cprSeedDeP_trigger, tprHelixCalibIPADeM_trigger, tprHelixIPADeM_trigger ] 
+
+# #include "gen/fcl/Trigger/offline/allTrig/allPaths.fcl"
+physics.proton_path : [ makeSH, makePH, FlagBkgHits, TimeClusterFinderDpP ] ##@sequence::su2020.trk_hit_reco
+output.readLumiInfo.SelectEvents : [proton_path]
