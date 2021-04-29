@@ -133,6 +133,7 @@ namespace mu2e {
     _flagXT(config().flagXT()),
     _printLevel(config().print()),
     _diagLevel(config().diag()),
+    _mask(StrawIdMask::uniquestraw), // this module produces individual straw ComboHits
     _end{StrawEnd::cal,StrawEnd::hv}, // this should be in a general place, FIXME!
     _sdctoken{consumes<StrawDigiCollection>(config().sdcTag())},
     _sdadctoken{mayConsume<StrawDigiADCWaveformCollection>(config().sdadcTag())},
@@ -286,12 +287,12 @@ namespace mu2e {
 	// filter based on composite e/P separation FIXME!
 	const Straw& straw  = tt.getStraw( digi.strawId() );
 	double dw, dwerr;
-	double dt = times[StrawEnd::cal] - times[StrawEnd::hv];
+	double dt = times[StrawEnd::hv] - times[StrawEnd::cal];
         double halfpv;
 	// get distance along wire from the straw center and it's estimated error
 	bool td = srep.wireDistance(straw,energy,dt, dw,dwerr,halfpv);
         float propd = straw.halfLength()+dw;
-        if (eend == StrawEnd(StrawEnd::hv))
+        if (eend == StrawEnd(StrawEnd::cal))
           propd = straw.halfLength()-dw;
 	XYZVec pos = Geom::toXYZVec(straw.getMidPoint()+dw*straw.getDirection());
 	// create combo hit
@@ -360,8 +361,11 @@ namespace mu2e {
     float pedestal = std::accumulate(adcData.begin(), wfstart, 0)*_invnpre;
 //    auto maxIter = std::max_element(wfstart,adcData.end());
     auto maxIter = wfstart;
-    while(maxIter != adcData.end() && *(maxIter+1) > *maxIter)
+    auto nextIter = maxIter; nextIter++;
+    while(nextIter != adcData.end() && *nextIter > *maxIter){
       ++maxIter;
+      ++nextIter;
+    }
     float peak = *maxIter;
     if(_diagLevel > 0)_maxiter->Fill(std::distance(wfstart,maxIter));
     return (peak-pedestal)*_invgainAvg;

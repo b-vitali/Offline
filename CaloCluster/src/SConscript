@@ -67,19 +67,13 @@ helper.make_plugins( [ mainlib,
                        'cetlib',
                        'cetlib_except',
                        'CLHEP',
+                       'TMVA',
+                       'xerces-c',  #needed for MVA 
                        'boost_filesystem',
                        'boost_system',
                        rootlibs
                      ],
                      )
-
-helper.make_dict_and_map( [
-    mainlib,
-    'art_Utilities',
-    'art_Persistency_Common',
-    'canvas',
-    'Core'
-    ] )
 
 
 # This tells emacs to view this file in python mode.

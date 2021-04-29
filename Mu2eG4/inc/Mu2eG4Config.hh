@@ -168,15 +168,50 @@ namespace mu2e {
           };
     };
 
-    struct MultiStageParameters_ {
+    struct EventLevelVolInfos {
+      using Name = fhicl::Name;
+      using Comment = fhicl::Comment;
+      fhicl::Atom<art::InputTag> input { Name("input"), Comment("Tag of the event-level PhysicalVolumeInfoMultiCollection to read")};
+      fhicl::Atom<std::string> outInstance { Name("outInstance"),
+          Comment("Instance name of PhysicalVolumeInfoMultiCollection written into events."),
+          "eventlevel"
+          };
+    };
+
+    struct Inputs_ {
       using Name = fhicl::Name;
       using Comment = fhicl::Comment;
 
-      fhicl::Atom<unsigned> simParticleNumberOffset {Name("simParticleNumberOffset")};
-      fhicl::Atom<art::InputTag> inputSimParticles {Name("inputSimParticles")};
-      fhicl::Atom<art::InputTag> inputMCTrajectories {Name("inputMCTrajectories")};
-      fhicl::Atom<art::InputTag> inputPhysVolumeMultiInfo {Name("inputPhysVolumeMultiInfo")};
-      fhicl::Sequence<art::InputTag> genInputHits {Name("genInputHits")};
+      fhicl::Atom<std::string> primaryType { Name("primaryType"), Comment(primaryType_docstring()) };
+      static std::string primaryType_docstring();
+      bool multiStage() const { return primaryType() != "GenParticles"; }
+
+      fhicl::Atom<art::InputTag> primaryTag {Name("primaryTag"), Comment("Tag of the input collection for G4 primaries")};
+
+      fhicl::Atom<art::InputTag> inputMCTrajectories {Name("inputMCTrajectories"),
+          Comment("MCTrajectoryCollection from the previous simulation stage, required for non-GenParticles primaries"),
+          fhicl::use_if(this, &Inputs_::multiStage)
+          };
+
+      fhicl::OptionalAtom<unsigned> simStageOverride {Name("simStageOverride"),
+          Comment("Normally simStage is determined at begin SubRun from the inputPhysVolumeMultiInfo product.\n"
+                  "If simStageOverride is defined it will be used instead and inputPhysVolumeMultiInfo will only\n"
+                  "be retrieved at end SubRun.  This option can only be used for non-GenParticles primaries."
+                  ),
+          fhicl::use_if(this, &Inputs_::multiStage)
+          };
+
+      fhicl::Atom<art::InputTag> inputPhysVolumeMultiInfo {Name("inputPhysVolumeMultiInfo"),
+          Comment("phys volumes from the previous simulation stage, required for non-GenParticles primaries"),
+          fhicl::use_if(this, &Inputs_::multiStage)
+          };
+
+      fhicl::OptionalTable<EventLevelVolInfos> updateEventLevelVolumeInfos {Name("updateEventLevelVolumeInfos"),
+          Comment("An option to update event-level volume infos, for mixing jobs.\n"
+                  "May only be used for non-GenParticles primaries."),
+          fhicl::use_if(this, &Inputs_::multiStage)
+          };
+
     };
 
     struct Top {
@@ -184,9 +219,10 @@ namespace mu2e {
       using Comment = fhicl::Comment;
       using DelegatedParameter = fhicl::DelegatedParameter;
 
+      fhicl::Table<Inputs_> inputs { Name("inputs") };
+
       fhicl::Table<Limits> ResourceLimits { Name("ResourceLimits") };
       fhicl::Table<TrajectoryControl_> TrajectoryControl { Name("TrajectoryControl") };
-      fhicl::OptionalTable<MultiStageParameters_> MultiStageParameters { Name("MultiStageParameters") };
       fhicl::Table<SDConfig_> SDConfig { Name("SDConfig") };
 
       DelegatedParameter  Mu2eG4StackingOnlyCut { Name("Mu2eG4StackingOnlyCut") };

@@ -19,13 +19,13 @@
 #include "CalorimeterGeom/inc/Calorimeter.hh"
 
 // G4 includes
-#include "G4Step.hh"
+#include "Geant4/G4Step.hh"
 
 
 namespace mu2e {
 
   CaloReadoutCardSD::CaloReadoutCardSD(G4String name, SimpleConfig const & config ):
-    Mu2eSensitiveDetector(name,config),_nro(0)
+    Mu2eG4SensitiveDetector(name,config),_nro(0)
   {
     GeomHandle<Calorimeter> cg;
     _nro  = cg->caloInfo().getInt("nSiPMPerCrystal");
@@ -64,6 +64,7 @@ namespace mu2e {
                                        aStep->GetPreStepPoint()->GetPosition() - _mu2eOrigin,
                                        aStep->GetPostStepPoint()->GetPosition() - _mu2eOrigin,
                                        aStep->GetPreStepPoint()->GetMomentum(),
+                                       aStep->GetPostStepPoint()->GetMomentum(),
                                        aStep->GetStepLength(),
                                        endCode
                                        ) );

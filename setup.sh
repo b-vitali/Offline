@@ -126,16 +126,17 @@ setup -B art_root_io v1_05_01 -q${MU2E_UPS_QUALIFIERS}
 
 # Geant4 and its cross-section files.
 if [[ $($MU2E_BASE_RELEASE/buildopts --trigger) == "off" ]]; then
-  setup -B geant4 v4_10_6_p02b -q${MU2E_UPS_QUALIFIERS}${MU2E_G4_GRAPHICS_QUALIFIER}${MU2E_G4_VECGEOM_QUALIFIER}${MU2E_G4_MT_QUALIFIER}${MU2E_G4_EXTRA_QUALIFIER}
+  setup -B geant4 v4_10_6_p03 -q${MU2E_UPS_QUALIFIERS}${MU2E_G4_GRAPHICS_QUALIFIER}${MU2E_G4_VECGEOM_QUALIFIER}${MU2E_G4_MT_QUALIFIER}${MU2E_G4_EXTRA_QUALIFIER}
 else
   setup -B xerces_c v3_2_3   -q${MU2E_UPS_QUALIFIERS}
 fi
 
 # Get access to raw data formats.
-setup -B mu2e_artdaq_core v1_05_04 -q${MU2E_UPS_QUALIFIERS}:+${MU2E_ART_SQUALIFIER}:offline
+setup -B mu2e_artdaq_core v1_05_06b -q${MU2E_UPS_QUALIFIERS}:+${MU2E_ART_SQUALIFIER}
 
 setup -B heppdt   v03_04_02 -q${MU2E_UPS_QUALIFIERS}
 setup -B BTrk   v1_02_30  -q${MU2E_UPS_QUALIFIERS}:p383b
+setup -B KinKal   v00_01_05  -q${MU2E_UPS_QUALIFIERS}:p383b
 setup -B cry   v1_7n  -q${MU2E_UPS_QUALIFIERS}
 setup -B gsl v2_6a
 setup curl v7_64_1

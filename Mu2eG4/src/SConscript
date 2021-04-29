@@ -6,6 +6,10 @@
 import os, re
 Import('env')
 
+# if building for the trigger exe, don't build this lib
+if env['TRIGGER'] == 'on':
+    Return()
+
 Import('mu2e_helper')
 
 helper=mu2e_helper(env)
@@ -16,12 +20,13 @@ helper=mu2e_helper(env)
 # 2) Construct G4GRANULARLIBS using shell() on the g4 command that makes
 #    the granular lib string.
 #
-
+# th fisrt line below has to stay due to PTL/Types.hh included in the native Geant4 files
 g4inc    = os.environ['G4INCLUDE'] + '/Geant4'
+g4inc2   = os.environ['G4INCLUDE']
 g4libdir = os.environ['G4LIB']
 cryptoppinc = os.environ['CRYPTOPP_INC']
 cryptopplibdir = os.environ['CRYPTOPP_LIB']
-g4LibInc = [ '-L'+g4libdir, '-I'+g4inc, '-L'+cryptopplibdir, '-I'+cryptoppinc ]
+g4LibInc = [ '-L'+g4libdir, '-I'+g4inc, '-I'+g4inc2, '-L'+cryptopplibdir, '-I'+cryptoppinc ]
 g4_version = os.environ['GEANT4_VERSION']
 g4_version=g4_version.replace('_','')
 if g4_version[2] == '9':
@@ -186,6 +191,9 @@ if g4vg != 'off':
     G4GLOBALIBS.append('libvecgeom')
     G4GLOBALIBS.append('libVc')
 
+if g4_version > '4106':
+    G4GLOBALIBS.append('libG4ptl')
+
 if g4_version < '4095':
     G4LIBS = G4GRANULARLIBS
 else:
@@ -208,8 +216,8 @@ XERCESC_LIBS = [ 'xerces-c' ]
 
 
 mainlib = helper.make_mainlib ( [
-        'mu2e_G4Helper_G4Helper_service',
-        'mu2e_G4Helper',
+        'mu2e_Mu2eG4Helper_Mu2eG4Helper_service',
+        'mu2e_Mu2eG4Helper',
         'mu2e_SeedService_SeedService_service',
         'mu2e_Mu2eUtilities',
         'mu2e_GeometryService',

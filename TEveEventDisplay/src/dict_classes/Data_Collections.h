@@ -13,7 +13,7 @@
 //Tracker Hits:
 #include "RecoDataProducts/inc/ComboHit.hh"
 //CRV:
-#include "RecoDataProducts/inc/CrvRecoPulseCollection.hh"
+#include "RecoDataProducts/inc/CrvRecoPulse.hh"
 #include "RecoDataProducts/inc/CrvCoincidenceClusterCollection.hh"
 //Art/FCL:
 #include "art/Framework/Principal/Event.h"
@@ -28,7 +28,7 @@
 #include <TGListBox.h>
 #include <iostream>
 #include <vector>
-
+#include <tuple>
 using namespace CLHEP;
 
 namespace mu2e{
@@ -49,7 +49,10 @@ namespace mu2e{
       const HelixSeedCollection* hseedcol = 0;
       const KalSeedCollection* kalseedcol = 0;
       const TrkExtTrajCollection* trkextcol = 0;
-
+      std::vector<const KalSeedCollection*> track_list;
+      std::vector<std::string> track_labels;
+      std::tuple<std::vector<std::string>, std::vector<const KalSeedCollection*>> track_tuple;
+      
       //MCDataProducts:
       const MCTrajectoryCollection *mctrajcol = 0;
 

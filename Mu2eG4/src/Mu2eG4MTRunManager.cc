@@ -23,20 +23,23 @@
 #include "Mu2eG4/inc/Mu2eWorld.hh"
 #include "Mu2eG4/inc/physicsListDecider.hh"
 #include "Mu2eG4/inc/preG4InitializeTasks.hh"
-#include "Mu2eG4/inc/ActionInitialization.hh"
 #include "Mu2eG4/inc/Mu2eG4MasterRunAction.hh"
 
 //G4 includes
-#include "G4Timer.hh"
-#include "G4VUserPhysicsList.hh"
-#include "G4ParticleHPManager.hh"
-#include "G4HadronicProcessStore.hh"
-#include "G4StateManager.hh"
-#include "G4GeometryManager.hh"
-#include "G4UserWorkerThreadInitialization.hh"
-#include "G4MTRunManagerKernel.hh"
-#include "G4VUserPhysicsList.hh"
-#include "G4SDManager.hh"
+#include "Geant4/G4Timer.hh"
+#include "Geant4/G4VUserPhysicsList.hh"
+#if G4VERSION>4106
+#include "Geant4/G4HadronicParameters.hh"
+#else
+#include "Geant4/G4ParticleHPManager.hh"
+#include "Geant4/G4HadronicProcessStore.hh"
+#endif
+#include "Geant4/G4StateManager.hh"
+#include "Geant4/G4GeometryManager.hh"
+#include "Geant4/G4UserWorkerThreadInitialization.hh"
+#include "Geant4/G4MTRunManagerKernel.hh"
+#include "Geant4/G4VUserPhysicsList.hh"
+#include "Geant4/G4SDManager.hh"
 
 using namespace std;
 
@@ -172,8 +175,12 @@ namespace mu2e {
 
     physicsList_->SetVerboseLevel(rmvlevel_);
     SetVerboseLevel(rmvlevel_);
+#if G4VERSION>4106
+    G4HadronicParameters::Instance()->SetVerboseLevel(rmvlevel_);
+#else
     G4ParticleHPManager::GetInstance()->SetVerboseLevel(rmvlevel_);
     G4HadronicProcessStore::Instance()->SetVerbose(rmvlevel_);
+#endif
 
     SetUserInitialization(allMu2e);
     SetUserInitialization(physicsList_);
