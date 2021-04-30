@@ -2,7 +2,7 @@
 // An EDAnalyzer module that reads the Trigger Info 
 //
 // Original author G. Pezzullo
-//
+// Modified by bvitali to test the lumi_monitor mock-up
 
 #include "art/Framework/Core/EDAnalyzer.h"
 #include "art/Framework/Core/ModuleMacros.h"
@@ -45,7 +45,6 @@
 #include "DataProducts/inc/XYZVec.hh"
 
 #include "RecoDataProducts/inc/LumiInfo.hh"                   //bvitali
-
 
 //MC dataproducts
 #include "MCDataProducts/inc/SimParticle.hh"
@@ -256,8 +255,6 @@ namespace mu2e {
     if (_lumi != NULL){
       _sumHist._hPTCVsNPOT ->Fill(_nPOT, _lumi->_lumi[0]);   //bvitali 
       _sumHist._hPTCVsNPOT_2 ->Fill(_nPOT, _lumi->_lumi[1]);   //bvitali 
-      //_sumHist._hPTCVsNPOT ->Fill(_nPOT, _lumi->_lumi1);   //bvitali 
-      //_sumHist._hPTCVsNPOT_2 ->Fill(_nPOT, _lumi->_lumi2);   //bvitali
     }
   }
   

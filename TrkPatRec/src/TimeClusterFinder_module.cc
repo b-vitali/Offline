@@ -21,7 +21,8 @@
 #include "RecoDataProducts/inc/TimeCluster.hh"
 #include "RecoDataProducts/inc/CaloCluster.hh"
 
-#include "RecoDataProducts/inc/LumiInfo.hh"
+//bvitali lumi_monitor mock-up
+#include "RecoDataProducts/inc/LumiInfo.hh" 
 
 // tracking
 #include "TrkReco/inc/TrkUtilities.hh"
@@ -202,7 +203,7 @@ namespace mu2e {
         _timespec = TH1F("timespec","time spectrum",nbins,_tmin,_tmax);
         produces<TimeClusterCollection>();
 
-	produces<LumiInfo>();                                                //bvitali
+	produces<LumiInfo>();                                                //bvitali lumi_monitor mock-up
     }
 
   void TimeClusterFinder::beginJob() {
@@ -260,7 +261,7 @@ namespace mu2e {
       }
     }
 
-    //bvitali
+    //bvitali lumi_monitor mock-up
     std::unique_ptr<LumiInfo> lumi(new LumiInfo);
     lumi->_lumi[0] = tccol->size();   
     lumi->_lumi[1] = tccol->size()/2.;   

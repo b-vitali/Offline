@@ -3,12 +3,14 @@
 #include <float.h>
 #include <math.h>
 //
-// This object is to contain the numbers to monitor the luminosity
-// The aim is to have a unit16_t * lumi = new unit16_t
+// This object is a mock-up to contain the variables to monitor the luminosity
+// The exact structure is still under discussion. (now just an unsigned short [2])
+//
+// To save space we might aim to have a unit16_t * lumi = new unit16_t
 // lumi[0] : 8 bit for the version, 8 bit for the number of entries
 // lumi[i] : 16 bit to indicate the i-number for the lumi (proton TC, calo energy etc)
 //
-// bvitali Dec 2020
+// bvitali Apr 2021
 
 
 namespace mu2e {

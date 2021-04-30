@@ -1,8 +1,8 @@
 # -*- mode: tcl -*-
 #------------------------------------------------------------------------------
-# conversion electrons: read digi file, reconstruct, stntuple 
-# by default: do not write reconstructed output (DST), set physics.output_path to [] 
-# includes tuned calorimeter timing resolution
+# bvitali Apr 2021
+# fcl to check lumiInfo mock-up and fill it with proton timeclusters
+# Based on a script form Giani
 #------------------------------------------------------------------------------
 BEGIN_PROLOG
   INPUT_MODULE  @protect_ignore: RootInput      # EmptyEvent/RootInput
@@ -55,24 +55,24 @@ physics                                   : { @table::Stntuple.physics
 
 
 
-#outputs.defaultOutput.outputCommands	: [##"keep *_*_*_*"
-#					    "drop    *_*_*_*",
-					    #"keep    mu2e::ProtonBunchIntensity_protonBunchIntensity__S4NoPrimary",
-					    #"keep    mu2e::StrawHits_makeSH__RecoStn",
-					    #"keep    mu2e::TimeClusters_TimeClusterFinderDpP__RecoStn",
-#					    "keep    mu2e::LumiInfo_TimeClusterFinderDpP__RecoStn"
-#					   ]	
-    
-#bvitali can we drop auxiliary and metadata? 
-outputs.defaultOutput : {module_type : RootOutput
-    dropMetaData       : "ALL"
-    outputCommands	: [##"keep *_*_*_*"
+outputs.defaultOutput.outputCommands	: [##"keep *_*_*_*"
 					    "drop    *_*_*_*",
 					    #"keep    mu2e::ProtonBunchIntensity_protonBunchIntensity__S4NoPrimary",
 					    #"keep    mu2e::StrawHits_makeSH__RecoStn",
 					    #"keep    mu2e::TimeClusters_TimeClusterFinderDpP__RecoStn",
 					    "keep    mu2e::LumiInfo_TimeClusterFinderDpP__RecoStn"
-					   ]
+					   ]	
+    
+# bvitali trying to drop drop auxiliary and metadata to save space 
+#outputs.defaultOutput : {module_type : RootOutput
+#    dropMetaData       : "ALL"
+#    outputCommands	: [##"keep *_*_*_*"
+#					    "drop    *_*_*_*",
+					    #"keep    mu2e::ProtonBunchIntensity_protonBunchIntensity__S4NoPrimary",
+					    #"keep    mu2e::StrawHits_makeSH__RecoStn",
+					    #"keep    mu2e::TimeClusters_TimeClusterFinderDpP__RecoStn",
+#					    "keep    mu2e::LumiInfo_TimeClusterFinderDpP__RecoStn"
+#					   ]
 }
 
 # tune calorimeter timing resolution for 1-batch running mode, <proton pulse intensity> = 1.6e7
@@ -83,8 +83,8 @@ physics.output_path                       : [ readLumiInfo, defaultOutput]  # ch
 #outputs.defaultOutput.SelectEvents        : [ @sequence::TRIGGER_PATHS ]
 #------------------------------------------------------------------------------
 services.GeometryService.inputFile        : "su2020/common/geom_baseline.txt"
-services.TFileService.fileName            : "/mu2e/data/personal/bvitali/su2020/mnbs0/nts._bvitali_.lumiInfo.su2020.000000_00000test.root"
-outputs.defaultOutput.fileName            : "/mu2e/data/personal/bvitali/su2020/mnbs0/mcs._bvitali_.lumiInfo.su2020.000000_00000test.art"
+services.TFileService.fileName            : "nts._user_.lumiInfo.xxx.000000_00000.root"
+outputs.defaultOutput.fileName            : "mcs._user_.lumiInfo.xxx.000000_00000.art"
 
 #physics.filters.StntupleMakerTemplate.triggerResultsTag : @local::PROCESS_NAME
 ## #include "lumiPath.fcl"
